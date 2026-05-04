@@ -10,20 +10,160 @@
     body {
       background: linear-gradient(160deg, #1a0a2e 0%, #0d0b1a 100%);
       min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      overflow: hidden;
       user-select: none;
       -webkit-user-select: none;
+      color: #fff;
+      overflow-x: hidden;
     }
 
-    .scene {
+    /* ── SCREENS ── */
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 40px 20px 32px;
+    }
+    .screen.active { display: flex; }
+
+    /* ── START SCREEN ── */
+    .start-title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #a78bfa;
+      margin-bottom: 36px;
+    }
+
+    .boosters-row {
+      display: flex;
+      gap: 24px;
+      align-items: flex-start;
+      margin-bottom: 40px;
+    }
+
+    .booster-slot {
       display: flex;
       flex-direction: column;
       align-items: center;
+      gap: 14px;
     }
+
+    .pack-preview {
+      position: relative;
+      width: 140px;
+      filter: drop-shadow(0 14px 28px rgba(100, 60, 200, 0.55));
+    }
+    .pack-preview img {
+      display: block;
+      width: 140px;
+      height: auto;
+    }
+
+    .info-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.45);
+      border: 1.5px solid rgba(255,255,255,0.28);
+      color: #c4b5fd;
+      font-size: 0.72rem;
+      font-weight: 700;
+      font-style: italic;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 5;
+      transition: background 0.2s;
+    }
+    .info-btn:hover { background: rgba(124,58,237,0.5); }
+
+    .count-badge {
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.6);
+      border: 1.5px solid rgba(255,255,255,0.15);
+      border-radius: 20px;
+      padding: 3px 12px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      color: #e2e8f0;
+      white-space: nowrap;
+      backdrop-filter: blur(4px);
+    }
+
+    .pack-type-label {
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #6b7280;
+    }
+
+    .open-btn {
+      padding: 10px 28px;
+      background: linear-gradient(145deg, #7c3aed, #6d28d9);
+      color: #fff;
+      border: none;
+      border-radius: 9px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 3px 14px rgba(109,40,217,0.5);
+      transition: all 0.2s;
+    }
+    .open-btn:hover { transform: translateY(-1px); box-shadow: 0 5px 20px rgba(124,58,237,0.65); }
+    .open-btn:active { transform: translateY(0); }
+    .open-btn:disabled {
+      background: #2d2050;
+      box-shadow: none;
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .my-prizes-btn {
+      margin-top: auto;
+      padding: 10px 36px;
+      background: transparent;
+      color: #7c6faa;
+      border: 1.5px solid #3b2f6e;
+      border-radius: 9px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .my-prizes-btn:hover { border-color: #7c3aed; color: #a78bfa; }
+
+    /* ── GAME SCREEN ── */
+    #gameScreen { overflow: hidden; }
+
+    .back-btn {
+      align-self: flex-start;
+      background: transparent;
+      border: none;
+      color: #7c6faa;
+      font-size: 0.78rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      padding: 4px 0;
+      margin-bottom: 20px;
+      transition: color 0.2s;
+    }
+    .back-btn:hover { color: #a78bfa; }
 
     .hint {
       color: #7c6faa;
@@ -37,9 +177,9 @@
     }
 
     /*
-      pack-area has z-index: 2 — this makes it render ABOVE the prize-card
-      (which has z-index: 1) while the card is inside the pack bounds.
-      As the card slides below the pack, it exits the pack's visual coverage.
+      pack-area z:2 covers prize-card z:1 while card is inside pack bounds.
+      filter: drop-shadow creates a new stacking context so siblings compare
+      z-index in the body context.
     */
     .pack-area {
       position: relative;
@@ -62,11 +202,9 @@
       display: block;
     }
 
-    /* Tear zone sits at the very bottom of the top piece */
     .tear-zone {
       position: absolute;
-      bottom: 0;
-      left: 0; right: 0;
+      bottom: 0; left: 0; right: 0;
       height: 24px;
       cursor: crosshair;
       touch-action: none;
@@ -80,7 +218,7 @@
       left: 6px; right: 6px;
       top: 50%; height: 0;
       transform: translateY(-50%);
-      border-top: 2px dashed rgba(255, 255, 255, 0.55);
+      border-top: 2px dashed rgba(255,255,255,0.55);
       pointer-events: none;
       filter: drop-shadow(0 0 3px rgba(255,255,255,0.6));
     }
@@ -105,20 +243,16 @@
       filter: drop-shadow(0 0 5px rgba(255,255,255,1));
     }
 
-    /* Fly-away animation for pack top */
     @keyframes flyAway {
       0%   { transform: translateY(0) rotate(0deg); opacity: 1; }
       100% { transform: translateY(-400px) rotate(-22deg); opacity: 0; }
     }
     .pack-top-wrap.fly {
-      animation: flyAway 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+      animation: flyAway 0.6s cubic-bezier(0.22,1,0.36,1) forwards;
       pointer-events: none;
     }
 
-    /*
-      Prize card — z-index:1 so pack-area (z:2) covers it while inside
-      the pack bounds. Switches to z-index:5 after rising above the tear line.
-    */
+    /* Prize card — z:1 while inside pack, switches to z:5 above tear line */
     .prize-card {
       position: fixed;
       opacity: 0;
@@ -145,12 +279,12 @@
     }
 
     .prize-star      { font-size: 28px; color: #f59e0b; line-height: 1; }
-    .prize-gold-line { width: 36px; height: 2px; background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b); border-radius: 1px; }
+    .prize-gold-line { width: 36px; height: 2px; background: linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b); border-radius: 1px; }
     .prize-label-txt { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #9ca3af; }
     .prize-value     { font-size: 22px; font-weight: 800; color: #111827; text-align: center; line-height: 1.25; }
 
-    /* Repeat button */
-    .btn {
+    /* "На главную" button after opening */
+    .home-btn {
       position: fixed;
       bottom: 36px;
       left: 50%;
@@ -165,24 +299,174 @@
       letter-spacing: 1.5px;
       text-transform: uppercase;
       cursor: pointer;
-      box-shadow: 0 4px 18px rgba(109, 40, 217, 0.55);
+      box-shadow: 0 4px 18px rgba(109,40,217,0.55);
       transition: all 0.25s;
       opacity: 0;
       pointer-events: none;
       z-index: 110;
     }
-    .btn.visible {
+    .home-btn.visible {
       opacity: 1;
       pointer-events: auto;
       transform: translateX(-50%) translateY(0);
     }
-    .btn:hover  { box-shadow: 0 6px 26px rgba(124, 58, 237, 0.65); }
-    .btn:active { transform: translateX(-50%) translateY(1px); }
+    .home-btn:hover  { box-shadow: 0 6px 26px rgba(124,58,237,0.65); }
+    .home-btn:active { transform: translateX(-50%) translateY(1px); }
+
+    /* ── POPUPS ── */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      z-index: 200;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .popup-overlay.show { display: flex; }
+
+    .popup-box {
+      background: #160d2e;
+      border: 1.5px solid #3b2f6e;
+      border-radius: 18px;
+      padding: 24px 20px 20px;
+      width: 100%;
+      max-width: 340px;
+      max-height: 80vh;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .popup-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: #a78bfa;
+      text-align: center;
+    }
+
+    .prize-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+    }
+    .prize-table th {
+      color: #4b5563;
+      font-weight: 600;
+      text-align: left;
+      padding: 4px 6px 8px;
+      border-bottom: 1px solid #2d2050;
+      font-size: 0.68rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .prize-table th:last-child { text-align: right; }
+    .prize-table td {
+      padding: 7px 6px;
+      color: #d1d5db;
+      border-bottom: 1px solid #1a1232;
+    }
+    .prize-table td:last-child { text-align: right; color: #a78bfa; font-weight: 700; }
+    .cat-row td {
+      padding: 12px 6px 4px;
+      font-size: 0.66rem;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #4b5563;
+      border-bottom: none;
+    }
+
+    .prizes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .prize-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 8px;
+      font-size: 0.84rem;
+      color: #e2e8f0;
+    }
+    .prize-item-tag {
+      margin-left: auto;
+      font-size: 0.65rem;
+      color: #7c6faa;
+      background: rgba(124,58,237,0.15);
+      border-radius: 4px;
+      padding: 2px 7px;
+      white-space: nowrap;
+    }
+
+    .empty-msg {
+      text-align: center;
+      color: #4b5563;
+      font-size: 0.82rem;
+      padding: 20px 0;
+    }
+
+    .popup-close {
+      padding: 10px;
+      background: transparent;
+      border: 1.5px solid #3b2f6e;
+      border-radius: 8px;
+      color: #7c6faa;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .popup-close:hover { border-color: #7c3aed; color: #a78bfa; }
   </style>
 </head>
 <body>
 
-<div class="scene">
+<!-- ══════════════ START SCREEN ══════════════ -->
+<div class="screen active" id="startScreen">
+  <p class="start-title">Бустерпаки</p>
+
+  <div class="boosters-row">
+    <!-- Gold -->
+    <div class="booster-slot">
+      <div class="pack-preview">
+        <button class="info-btn" data-type="gold">i</button>
+        <img src="booster_gold_top.png" alt="">
+        <img src="booster_gold_body.png" alt="">
+        <div class="count-badge" id="goldCount">99</div>
+      </div>
+      <p class="pack-type-label">Золотой</p>
+      <button class="open-btn" id="openGold">Открыть</button>
+    </div>
+
+    <!-- Foil -->
+    <div class="booster-slot">
+      <div class="pack-preview">
+        <button class="info-btn" data-type="foil">i</button>
+        <img src="booster_foil_top.png" alt="">
+        <img src="booster_foil_body.png" alt="">
+        <div class="count-badge" id="foilCount">99</div>
+      </div>
+      <p class="pack-type-label">Фолиевый</p>
+      <button class="open-btn" id="openFoil">Открыть</button>
+    </div>
+  </div>
+
+  <button class="my-prizes-btn" id="myPrizesBtn">Мои призы</button>
+</div>
+
+<!-- ══════════════ GAME SCREEN ══════════════ -->
+<div class="screen" id="gameScreen">
+  <button class="back-btn" id="backBtn">← Назад</button>
   <p class="hint" id="hint">Проведи пальцем по линии отрыва →</p>
 
   <div class="pack-area" id="packArea">
@@ -198,7 +482,7 @@
   </div>
 </div>
 
-<!-- Prize card lives outside pack-area so z-index comparison works -->
+<!-- Prize card — lives outside screens so z-index stacking works -->
 <div class="prize-card" id="prizeCard">
   <img class="card-bg" src="card.png" alt="">
   <div class="card-content">
@@ -209,20 +493,61 @@
   </div>
 </div>
 
-<button class="btn" id="repeatBtn">Повторить</button>
+<button class="home-btn" id="homeBtn">На главную</button>
+
+<!-- ══════════════ INFO POPUP ══════════════ -->
+<div class="popup-overlay" id="infoPopup">
+  <div class="popup-box">
+    <p class="popup-title" id="infoTitle">Призы</p>
+    <table class="prize-table">
+      <thead><tr><th>Приз</th><th>Шанс</th></tr></thead>
+      <tbody id="infoBody"></tbody>
+    </table>
+    <button class="popup-close" id="infoClose">Закрыть</button>
+  </div>
+</div>
+
+<!-- ══════════════ MY PRIZES POPUP ══════════════ -->
+<div class="popup-overlay" id="prizesPopup">
+  <div class="popup-box">
+    <p class="popup-title">Мои призы</p>
+    <div class="prizes-list" id="prizesList"></div>
+    <button class="popup-close" id="prizesClose">Закрыть</button>
+  </div>
+</div>
 
 <script>
-  const PRIZES = [
-    'Кофе', '-10%', '-15%', '-20%', 'Фишка с котом',
-    'Скидка на сладкое', 'Кошачий корм', 'Предсказание',
-    '50 бонусов', 'Билет', 'Дополнительный ход'
+  /* ── DATA ── */
+  const PRIZES_DATA = [
+    { cat: 'Дешёвый',  name: '-10%',               gold: 8,  foil: 4  },
+    { cat: 'Дешёвый',  name: 'Ещё одна игра',       gold: 8,  foil: 4  },
+    { cat: 'Дешёвый',  name: 'Дополнительный ход',  gold: 8,  foil: 4  },
+    { cat: 'Дешёвый',  name: 'Предсказание',        gold: 8,  foil: 4  },
+    { cat: 'Средний',  name: '-15%',                gold: 11, foil: 8  },
+    { cat: 'Средний',  name: 'Фишка с котом',       gold: 11, foil: 8  },
+    { cat: 'Средний',  name: 'Скидка на сладкое',   gold: 11, foil: 7  },
+    { cat: 'Средний',  name: 'Кошачий корм',        gold: 11, foil: 8  },
+    { cat: 'Средний',  name: 'Билет',               gold: 11, foil: 8  },
+    { cat: 'Дорогой',  name: 'Кофе',                gold: 5,  foil: 15 },
+    { cat: 'Дорогой',  name: '-20%',                gold: 4,  foil: 15 },
+    { cat: 'Дорогой',  name: '50 бонусов',          gold: 4,  foil: 15 },
   ];
 
-  const PACKS = [
-    { top: 'booster_gold_top.png', body: 'booster_gold_body.png' },
-    { top: 'booster_foil_top.png', body: 'booster_foil_body.png' },
-  ];
+  const PACKS = {
+    gold: { top: 'booster_gold_top.png', body: 'booster_gold_body.png', label: 'Золотой' },
+    foil: { top: 'booster_foil_top.png', body: 'booster_foil_body.png', label: 'Фолиевый' },
+  };
 
+  /* ── STATE ── */
+  const state = {
+    counts:     { gold: 99, foil: 99 },
+    myPrizes:   [],
+    activeType: 'gold',
+  };
+
+  /* ── DOM ── */
+  const startScreen = document.getElementById('startScreen');
+  const gameScreen  = document.getElementById('gameScreen');
   const packTopWrap = document.getElementById('packTopWrap');
   const packTopImg  = document.getElementById('packTopImg');
   const packBodyImg = document.getElementById('packBodyImg');
@@ -231,9 +556,126 @@
   const scissors    = document.getElementById('scissors');
   const prizeCard   = document.getElementById('prizeCard');
   const prizeValue  = document.getElementById('prizeValue');
-  const repeatBtn   = document.getElementById('repeatBtn');
+  const homeBtn     = document.getElementById('homeBtn');
   const hint        = document.getElementById('hint');
+  const backBtn     = document.getElementById('backBtn');
 
+  /* ── SCREENS ── */
+  function showScreen(id) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  /* ── PRIZE PICK ── */
+  function pickPrize(type) {
+    const rand = Math.random() * 100;
+    let cum = 0;
+    for (const p of PRIZES_DATA) {
+      cum += p[type];
+      if (rand < cum) return p.name;
+    }
+    return PRIZES_DATA[PRIZES_DATA.length - 1].name;
+  }
+
+  /* ── COUNT DISPLAY ── */
+  function updateCounts() {
+    document.getElementById('goldCount').textContent = state.counts.gold;
+    document.getElementById('foilCount').textContent = state.counts.foil;
+    document.getElementById('openGold').disabled = state.counts.gold <= 0;
+    document.getElementById('openFoil').disabled = state.counts.foil <= 0;
+  }
+
+  /* ── START SCREEN ACTIONS ── */
+  document.getElementById('openGold').addEventListener('click', () => startPack('gold'));
+  document.getElementById('openFoil').addEventListener('click', () => startPack('foil'));
+
+  function startPack(type) {
+    if (state.counts[type] <= 0) return;
+    state.activeType = type;
+    state.counts[type]--;
+    updateCounts();
+
+    const pack = PACKS[type];
+    packTopImg.src  = pack.top;
+    packBodyImg.src = pack.body;
+    resetGame();
+    showScreen('gameScreen');
+  }
+
+  /* ── INFO POPUP ── */
+  document.querySelectorAll('.info-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const type = btn.dataset.type;
+      document.getElementById('infoTitle').textContent =
+        'Призы: ' + PACKS[type].label;
+
+      const tbody = document.getElementById('infoBody');
+      tbody.innerHTML = '';
+      let lastCat = null;
+      for (const p of PRIZES_DATA) {
+        if (p.cat !== lastCat) {
+          lastCat = p.cat;
+          tbody.insertAdjacentHTML('beforeend',
+            `<tr class="cat-row"><td colspan="2">${p.cat}</td></tr>`);
+        }
+        tbody.insertAdjacentHTML('beforeend',
+          `<tr><td>${p.name}</td><td>${p[type]}%</td></tr>`);
+      }
+      document.getElementById('infoPopup').classList.add('show');
+    });
+  });
+
+  document.getElementById('infoClose').addEventListener('click', () =>
+    document.getElementById('infoPopup').classList.remove('show'));
+
+  document.getElementById('infoPopup').addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+  });
+
+  /* ── MY PRIZES POPUP ── */
+  document.getElementById('myPrizesBtn').addEventListener('click', () => {
+    const list = document.getElementById('prizesList');
+    if (state.myPrizes.length === 0) {
+      list.innerHTML = '<p class="empty-msg">Призов пока нет — открой бустер!</p>';
+    } else {
+      list.innerHTML = state.myPrizes.map(p =>
+        `<div class="prize-item">
+          <span>★ ${p.name}</span>
+          <span class="prize-item-tag">${p.packLabel}</span>
+        </div>`
+      ).join('');
+    }
+    document.getElementById('prizesPopup').classList.add('show');
+  });
+
+  document.getElementById('prizesClose').addEventListener('click', () =>
+    document.getElementById('prizesPopup').classList.remove('show'));
+
+  document.getElementById('prizesPopup').addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+  });
+
+  /* ── BACK BUTTON ── */
+  backBtn.addEventListener('click', () => {
+    if (!opened) {
+      // Pack not yet opened — return it
+      state.counts[state.activeType]++;
+      updateCounts();
+    }
+    resetGame();
+    prizeCard.style.cssText = 'position:fixed;opacity:0;z-index:1;pointer-events:none;';
+    showScreen('startScreen');
+  });
+
+  /* ── HOME BUTTON (after opening) ── */
+  homeBtn.addEventListener('click', () => {
+    resetGame();
+    prizeCard.style.cssText = 'position:fixed;opacity:0;z-index:1;pointer-events:none;';
+    showScreen('startScreen');
+  });
+
+  /* ── GAME ── */
   let cutProgress = 0;
   let dragging    = false;
   let opened      = false;
@@ -265,82 +707,75 @@
     scissors.style.left = Math.max(-4, cutProgress * rect.width - 10) + 'px';
     packTopWrap.style.transform = `translateY(${-cutProgress * 5}px)`;
 
-    if (cutProgress >= 0.8) open();
+    if (cutProgress >= 0.8) openPack();
   }
 
-  function open() {
+  function openPack() {
     opened = true;
     dragging = false;
     hint.style.opacity = '0';
     cutLine.style.width = '100%';
     packTopWrap.style.transform = '';
 
-    prizeValue.textContent = PRIZES[Math.floor(Math.random() * PRIZES.length)];
+    const prizeName = pickPrize(state.activeType);
+    prizeValue.textContent = prizeName;
+    state.myPrizes.unshift({ name: prizeName, packLabel: PACKS[state.activeType].label });
 
     setTimeout(() => {
       packTopWrap.classList.add('fly');
 
       setTimeout(() => {
-        const bodyRect = packBodyImg.getBoundingClientRect();
-        const centerX  = bodyRect.left + bodyRect.width / 2;
-
-        // Scale card proportionally: same px/px ratio as booster body image
+        const bodyRect  = packBodyImg.getBoundingClientRect();
+        const centerX   = bodyRect.left + bodyRect.width / 2;
         const cardBgImg = prizeCard.querySelector('.card-bg');
-        const scale  = bodyRect.width / packBodyImg.naturalWidth;
-        const cardW  = Math.round(cardBgImg.naturalWidth * scale);
+        const scale     = bodyRect.width / packBodyImg.naturalWidth;
+        const cardW     = Math.round(cardBgImg.naturalWidth * scale);
 
-        // Measure card height off-screen
+        // Measure height off-screen
         prizeCard.style.cssText = `
-          position: fixed;
-          width: ${cardW}px;
-          left: ${centerX}px;
-          transform: translateX(-50%);
-          top: -9999px;
-          opacity: 0;
-          z-index: 1;
-          pointer-events: none;
+          position:fixed;
+          width:${cardW}px;
+          left:${centerX}px;
+          transform:translateX(-50%);
+          top:-9999px;
+          opacity:0;
+          z-index:1;
+          pointer-events:none;
         `;
         void prizeCard.offsetHeight;
         const cardH = prizeCard.offsetHeight;
 
-        // Start centered in the pack body — hidden by pack-area z:2
+        // Start centered in pack body (hidden behind pack z:2)
         const startTop = bodyRect.top + (bodyRect.height - cardH) / 2;
         Object.assign(prizeCard.style, {
-          top:        startTop + 'px',
-          opacity:    '1',
+          top: startTop + 'px',
+          opacity: '1',
           transition: 'none',
         });
         void prizeCard.offsetWidth;
 
-        // Phase 1: rise so card bottom is 5px above pack body top
+        // Phase 1: rise until card bottom is 5px above pack body top
         const overshootTop = bodyRect.top - cardH - 5;
         Object.assign(prizeCard.style, {
-          transition: 'top 0.65s cubic-bezier(0.22, 1, 0.36, 1)',
-          top:        overshootTop + 'px',
+          transition: 'top 0.65s cubic-bezier(0.22,1,0.36,1)',
+          top: overshootTop + 'px',
         });
 
-        // Phase 2: switch to z:5 and settle onto pack body
+        // Phase 2: z-index flip → settle onto pack body
         setTimeout(() => {
           const settleTop = bodyRect.top + 16;
           Object.assign(prizeCard.style, {
-            zIndex:     '5',
-            transition: 'top 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            top:        settleTop + 'px',
+            zIndex: '5',
+            transition: 'top 0.55s cubic-bezier(0.34,1.56,0.64,1)',
+            top: settleTop + 'px',
           });
-
-          setTimeout(() => repeatBtn.classList.add('visible'), 600);
+          setTimeout(() => homeBtn.classList.add('visible'), 600);
         }, 680);
       }, 360);
     }, 80);
   }
 
-  function pickPack() {
-    const pack = PACKS[Math.floor(Math.random() * PACKS.length)];
-    packTopImg.src  = pack.top;
-    packBodyImg.src = pack.body;
-  }
-
-  function reset() {
+  function resetGame() {
     opened = false;
     cutProgress = 0;
 
@@ -352,24 +787,24 @@
 
     cutLine.style.width = '0%';
     scissors.style.left = '-4px';
-
-    prizeCard.style.cssText = 'position:fixed; opacity:0; z-index:1; pointer-events:none;';
-    repeatBtn.classList.remove('visible');
+    homeBtn.classList.remove('visible');
     hint.style.opacity = '1';
-
-    pickPack();
+    hint.textContent = 'Проведи пальцем по линии отрыва →';
   }
 
   tearZone.addEventListener('mousedown',  onStart);
   tearZone.addEventListener('touchstart', onStart, { passive: false });
   document.addEventListener('mousemove',  onMove);
-  document.addEventListener('touchmove',  onMove,  { passive: false });
+  document.addEventListener('touchmove',  onMove, { passive: false });
   document.addEventListener('mouseup',    onEnd);
   document.addEventListener('touchend',   onEnd);
-  repeatBtn.addEventListener('click', reset);
 
-  PACKS.forEach(p => [p.top, p.body].forEach(src => { new Image().src = src; }));
-  pickPack();
+  // Preload all images
+  Object.values(PACKS).forEach(p => [p.top, p.body].forEach(src => {
+    new Image().src = src;
+  }));
+
+  updateCounts();
 </script>
 </body>
 </html>
