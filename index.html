@@ -53,12 +53,12 @@
 
     .pack-preview {
       position: relative;
-      width: 140px;
+      width: 210px;
       filter: drop-shadow(0 14px 28px rgba(100, 60, 200, 0.55));
     }
     .pack-preview img {
       display: block;
-      width: 140px;
+      width: 210px;
       height: auto;
     }
 
@@ -149,6 +149,48 @@
 
     /* ── GAME SCREEN ── */
     #gameScreen { overflow: hidden; }
+
+    .game-counter {
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #6b7280;
+      margin-bottom: 6px;
+      align-self: center;
+    }
+    .game-counter span {
+      color: #a78bfa;
+    }
+
+    .next-booster-btn {
+      position: fixed;
+      bottom: 36px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      padding: 12px 40px;
+      background: linear-gradient(145deg, #059669, #047857);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(5,150,105,0.45);
+      transition: all 0.25s;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 115;
+    }
+    .next-booster-btn.visible {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateX(-50%) translateY(0);
+    }
+    .next-booster-btn:hover  { box-shadow: 0 6px 26px rgba(5,150,105,0.6); }
+    .next-booster-btn:active { transform: translateX(-50%) translateY(1px); }
 
     .back-btn {
       align-self: flex-start;
@@ -286,7 +328,7 @@
     /* "На главную" button after opening */
     .home-btn {
       position: fixed;
-      bottom: 36px;
+      bottom: 100px;
       left: 50%;
       transform: translateX(-50%) translateY(16px);
       padding: 12px 40px;
@@ -467,6 +509,7 @@
 <!-- ══════════════ GAME SCREEN ══════════════ -->
 <div class="screen" id="gameScreen">
   <button class="back-btn" id="backBtn">← Назад</button>
+  <p class="game-counter" id="gameCounter">Осталось бустеров: <span id="gameCounterVal">0</span></p>
   <p class="hint" id="hint">Проведи пальцем по линии отрыва →</p>
 
   <div class="pack-area" id="packArea">
@@ -494,6 +537,7 @@
 </div>
 
 <button class="home-btn" id="homeBtn">На главную</button>
+<button class="next-booster-btn" id="nextBoosterBtn">Открыть следующий</button>
 
 <!-- ══════════════ INFO POPUP ══════════════ -->
 <div class="popup-overlay" id="infoPopup">
@@ -557,8 +601,10 @@
   const prizeCard   = document.getElementById('prizeCard');
   const prizeValue  = document.getElementById('prizeValue');
   const homeBtn     = document.getElementById('homeBtn');
+  const nextBoosterBtn = document.getElementById('nextBoosterBtn');
   const hint        = document.getElementById('hint');
   const backBtn     = document.getElementById('backBtn');
+  const gameCounterVal = document.getElementById('gameCounterVal');
 
   /* ── SCREENS ── */
   function showScreen(id) {
@@ -594,6 +640,7 @@
     state.activeType = type;
     state.counts[type]--;
     updateCounts();
+    gameCounterVal.textContent = state.counts[type];
 
     const pack = PACKS[type];
     packTopImg.src  = pack.top;
@@ -673,6 +720,27 @@
     resetGame();
     prizeCard.style.cssText = 'position:fixed;opacity:0;z-index:1;pointer-events:none;';
     showScreen('startScreen');
+  });
+
+  /* ── NEXT BOOSTER BUTTON ── */
+  nextBoosterBtn.addEventListener('click', () => {
+    const type = state.activeType;
+    if (state.counts[type] <= 0) {
+      // No more of this type — go home
+      resetGame();
+      prizeCard.style.cssText = 'position:fixed;opacity:0;z-index:1;pointer-events:none;';
+      showScreen('startScreen');
+      return;
+    }
+    state.counts[type]--;
+    updateCounts();
+    gameCounterVal.textContent = state.counts[type];
+
+    const pack = PACKS[type];
+    packTopImg.src  = pack.top;
+    packBodyImg.src = pack.body;
+    prizeCard.style.cssText = 'position:fixed;opacity:0;z-index:1;pointer-events:none;';
+    resetGame();
   });
 
   /* ── GAME ── */
@@ -769,7 +837,12 @@
             transition: 'top 0.55s cubic-bezier(0.34,1.56,0.64,1)',
             top: settleTop + 'px',
           });
-          setTimeout(() => homeBtn.classList.add('visible'), 600);
+          setTimeout(() => {
+            homeBtn.classList.add('visible');
+            if (state.counts[state.activeType] > 0) {
+              nextBoosterBtn.classList.add('visible');
+            }
+          }, 600);
         }, 680);
       }, 360);
     }, 80);
@@ -788,6 +861,7 @@
     cutLine.style.width = '0%';
     scissors.style.left = '-4px';
     homeBtn.classList.remove('visible');
+    nextBoosterBtn.classList.remove('visible');
     hint.style.opacity = '1';
     hint.textContent = 'Проведи пальцем по линии отрыва →';
   }
