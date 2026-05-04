@@ -115,45 +115,39 @@
       pointer-events: none;
     }
 
-    /* Dark backdrop */
-    .backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.75);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity 0.45s ease;
-      z-index: 88;
-    }
-    .backdrop.show { opacity: 1; }
-
     /*
-      Prize card — fixed position, z-index: 1 so pack-area (z:2) covers it
-      while it's still within the pack's bounds. Once it slides below
-      the pack bottom, it becomes visible naturally.
+      Prize card — z-index:1 so pack-area (z:2) covers it while inside
+      the pack bounds. Switches to z-index:5 after rising above the tear line.
     */
     .prize-card {
       position: fixed;
-      background: #ffffff;
-      border-radius: 16px;
-      box-shadow:
-        0 16px 56px rgba(0, 0, 0, 0.55),
-        0 0 0 2px rgba(255, 215, 0, 0.45);
+      opacity: 0;
+      pointer-events: none;
+      z-index: 1;
+      filter: drop-shadow(0 12px 32px rgba(0,0,0,0.5));
+    }
+
+    .card-bg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .card-content {
+      position: absolute;
+      inset: 0;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      padding: 26px 20px;
-      opacity: 0;
-      pointer-events: none;
-      z-index: 1;
+      gap: 8px;
+      padding: 12px;
     }
 
-    .prize-star      { font-size: 30px; color: #f59e0b; line-height: 1; }
+    .prize-star      { font-size: 28px; color: #f59e0b; line-height: 1; }
     .prize-gold-line { width: 36px; height: 2px; background: linear-gradient(90deg, #f59e0b, #fbbf24, #f59e0b); border-radius: 1px; }
     .prize-label-txt { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #9ca3af; }
-    .prize-value     { font-size: 24px; font-weight: 800; color: #111827; text-align: center; line-height: 1.25; }
+    .prize-value     { font-size: 22px; font-weight: 800; color: #111827; text-align: center; line-height: 1.25; }
 
     /* Repeat button */
     .btn {
@@ -188,8 +182,6 @@
 </head>
 <body>
 
-<div class="backdrop" id="backdrop"></div>
-
 <div class="scene">
   <p class="hint" id="hint">Проведи пальцем по линии отрыва →</p>
 
@@ -208,10 +200,13 @@
 
 <!-- Prize card lives outside pack-area so z-index comparison works -->
 <div class="prize-card" id="prizeCard">
-  <div class="prize-star">★</div>
-  <div class="prize-gold-line"></div>
-  <div class="prize-label-txt">Ваш приз</div>
-  <div class="prize-value" id="prizeValue">—</div>
+  <img class="card-bg" src="card.png" alt="">
+  <div class="card-content">
+    <div class="prize-star">★</div>
+    <div class="prize-gold-line"></div>
+    <div class="prize-label-txt">Ваш приз</div>
+    <div class="prize-value" id="prizeValue">—</div>
+  </div>
 </div>
 
 <button class="btn" id="repeatBtn">Повторить</button>
@@ -238,7 +233,6 @@
   const prizeValue  = document.getElementById('prizeValue');
   const repeatBtn   = document.getElementById('repeatBtn');
   const hint        = document.getElementById('hint');
-  const backdrop    = document.getElementById('backdrop');
 
   let cutProgress = 0;
   let dragging    = false;
@@ -288,62 +282,54 @@
 
       setTimeout(() => {
         const bodyRect = packBodyImg.getBoundingClientRect();
+        const centerX  = bodyRect.left + bodyRect.width / 2;
 
-        // Card is 90% the width of the pack body, centered on it
-        const cardW = Math.round(bodyRect.width * 0.9);
-        const cardL = bodyRect.left + bodyRect.width * 0.05;
+        // Scale card proportionally: same px/px ratio as booster body image
+        const cardBgImg = prizeCard.querySelector('.card-bg');
+        const scale  = bodyRect.width / packBodyImg.naturalWidth;
+        const cardW  = Math.round(cardBgImg.naturalWidth * scale);
 
-        // Measure card height by briefly making it measurable
+        // Measure card height off-screen
         prizeCard.style.cssText = `
           position: fixed;
           width: ${cardW}px;
-          left: ${cardL}px;
+          left: ${centerX}px;
+          transform: translateX(-50%);
           top: -9999px;
           opacity: 0;
           z-index: 1;
+          pointer-events: none;
         `;
         void prizeCard.offsetHeight;
         const cardH = prizeCard.offsetHeight;
 
-        // Position card so its bottom aligns with pack body bottom
-        // It's hidden behind pack-area (z:2 vs z:1)
-        const startTop = bodyRect.bottom - cardH;
-
+        // Start centered in the pack body — hidden by pack-area z:2
+        const startTop = bodyRect.top + (bodyRect.height - cardH) / 2;
         Object.assign(prizeCard.style, {
-          top:       startTop + 'px',
-          opacity:   '1',
+          top:        startTop + 'px',
+          opacity:    '1',
           transition: 'none',
         });
-
         void prizeCard.offsetWidth;
 
-        // Phase 1: slide card down and out from under pack bottom
-        const exitTop = bodyRect.bottom + 8;
+        // Phase 1: rise so card bottom is 5px above pack body top
+        const overshootTop = bodyRect.top - cardH - 5;
         Object.assign(prizeCard.style, {
-          transition: 'top 0.7s cubic-bezier(0.22, 1, 0.36, 1)',
-          top:        exitTop + 'px',
+          transition: 'top 0.65s cubic-bezier(0.22, 1, 0.36, 1)',
+          top:        overshootTop + 'px',
         });
 
-        // Phase 2: fly to screen center
+        // Phase 2: switch to z:5 and settle onto pack body
         setTimeout(() => {
-          backdrop.classList.add('show');
-
+          const settleTop = bodyRect.top + 16;
           Object.assign(prizeCard.style, {
-            transition: [
-              'top    0.6s cubic-bezier(0.22, 1, 0.36, 1)',
-              'left   0.6s cubic-bezier(0.22, 1, 0.36, 1)',
-              'width  0.5s cubic-bezier(0.22, 1, 0.36, 1)',
-              'transform 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)',
-            ].join(', '),
-            top:       '50%',
-            left:      '50%',
-            width:     '280px',
-            transform: 'translate(-50%, -50%)',
-            zIndex:    '100',
+            zIndex:     '5',
+            transition: 'top 0.55s cubic-bezier(0.34, 1.56, 0.64, 1)',
+            top:        settleTop + 'px',
           });
 
-          setTimeout(() => repeatBtn.classList.add('visible'), 700);
-        }, 800);
+          setTimeout(() => repeatBtn.classList.add('visible'), 600);
+        }, 680);
       }, 360);
     }, 80);
   }
@@ -368,7 +354,6 @@
     scissors.style.left = '-4px';
 
     prizeCard.style.cssText = 'position:fixed; opacity:0; z-index:1; pointer-events:none;';
-    backdrop.classList.remove('show');
     repeatBtn.classList.remove('visible');
     hint.style.opacity = '1';
 
