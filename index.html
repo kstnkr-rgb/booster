@@ -806,19 +806,12 @@
 
   <!-- Top bar -->
   <div class="top-bar">
-    <div class="currency-row">
-      <div class="currency-item">
-        <span style="font-size:17px;line-height:1;">🌿</span>
-        <span>300</span>
-      </div>
-      <div class="currency-sep">|</div>
-      <div class="currency-item">
-        <img src="crystals.png" class="currency-icon" alt="">
-        <span>100</span>
-      </div>
-    </div>
+    <img src="crystals.png" style="height:36px;width:auto;filter:drop-shadow(0 2px 6px rgba(0,0,0,0.12));" alt="">
     <button class="profile-btn" id="profileBtn">
-      <img src="profile.svg" alt="">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="8" r="4" fill="#7c3aed"/>
+        <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
     </button>
   </div>
 
@@ -981,7 +974,7 @@
   const PACKS = {
     gold:  { top: 'booster_gold_top.png', body: 'booster_gold_body.png', label: 'Золотой'   },
     foil:  { top: 'booster_foil_top.png', body: 'booster_foil_body.png', label: 'Фолиевый'  },
-    kitty: { top: 'booster_cat.png',      body: 'booster_cat.png',       label: 'Котиковый' },
+    kitty: { top: 'booster_cat_top.png',  body: 'booster_cat_body.png',  label: 'Котиковый' },
   };
 
   const CAT_CARD = {
