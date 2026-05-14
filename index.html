@@ -301,13 +301,30 @@
       pointer-events: none;
       z-index: 1;
       filter: drop-shadow(0 12px 32px rgba(0,0,0,0.5));
+      perspective: 900px;
     }
 
-    .card-bg {
-      width: 100%;
-      height: auto;
-      display: block;
+    .card-inner {
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
     }
+    .card-inner.flipped { transform: rotateY(180deg); }
+
+    .card-face {
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+    }
+    /* back face is normal flow — defines card height */
+    .card-face.card-back img { width: 100%; height: auto; display: block; }
+
+    /* front face overlays absolutely */
+    .card-face.card-front {
+      position: absolute;
+      inset: 0;
+      transform: rotateY(180deg);
+    }
+    .card-face.card-front .card-bg { width: 100%; height: 100%; display: block; object-fit: fill; }
 
     .card-content {
       position: absolute;
@@ -324,6 +341,14 @@
     .prize-gold-line { width: 36px; height: 2px; background: linear-gradient(90deg,#f59e0b,#fbbf24,#f59e0b); border-radius: 1px; }
     .prize-label-txt { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #9ca3af; }
     .prize-value     { font-size: 22px; font-weight: 800; color: #111827; text-align: center; line-height: 1.25; }
+
+    /* Particles */
+    .particle {
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 200;
+    }
 
     /* "На главную" button after opening */
     .home-btn {
@@ -469,6 +494,103 @@
       transition: all 0.2s;
     }
     .popup-close:hover { border-color: #7c3aed; color: #a78bfa; }
+
+    /* ── START SCREEN ACTIONS ROW ── */
+    .start-actions {
+      margin-top: auto;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    /* ── ALBUM SCREEN ── */
+    .sticker-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 6px;
+      width: 100%;
+      max-width: 364px;
+      margin-bottom: 24px;
+    }
+
+    .slot {
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.06);
+      border: 2px solid rgba(255,255,255,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1em;
+      transition: background 0.25s, border-color 0.25s;
+    }
+    .slot.filled {
+      background: rgba(167,139,250,0.18);
+      border-color: #a78bfa;
+    }
+    .slot.next-target {
+      border-color: #fbbf24;
+      animation: slotPulse 1s ease-in-out infinite;
+    }
+    @keyframes slotPulse {
+      0%,100% { box-shadow: 0 0 6px rgba(251,191,36,0.35); }
+      50%      { box-shadow: 0 0 16px rgba(251,191,36,0.75); }
+    }
+
+    .sticker-tray {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 10px 20px;
+      background: rgba(255,255,255,0.04);
+      border: 1.5px solid #3b2f6e;
+      border-radius: 16px;
+    }
+    .sticker-source {
+      border-radius: 50%;
+      background: rgba(167,139,250,0.2);
+      border: 2px solid #a78bfa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3em;
+      cursor: grab;
+      transition: opacity 0.2s, transform 0.15s;
+      flex-shrink: 0;
+    }
+    .sticker-source:active { transform: scale(0.92); }
+    .sticker-source.empty  { opacity: 0.25; cursor: default; pointer-events: none; }
+
+    .sticker-tray-label {
+      font-size: 0.82rem;
+      color: #7c6faa;
+      letter-spacing: 0.5px;
+    }
+    .sticker-tray-label span {
+      font-weight: 700;
+      color: #a78bfa;
+      font-size: 1rem;
+    }
+
+    .sticker-ghost {
+      position: fixed;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: rgba(167,139,250,0.85);
+      border: 2px solid #a78bfa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3em;
+      pointer-events: none;
+      opacity: 0;
+      transform: translate(-50%, -50%);
+      z-index: 300;
+      transition: opacity 0.12s;
+    }
+    .sticker-ghost.dragging { opacity: 1; }
   </style>
 </head>
 <body>
@@ -503,7 +625,10 @@
     </div>
   </div>
 
-  <button class="my-prizes-btn" id="myPrizesBtn">Мои призы</button>
+  <div class="start-actions">
+    <button class="my-prizes-btn" id="myPrizesBtn">Мои призы</button>
+    <button class="my-prizes-btn" id="albumBtn">Альбом</button>
+  </div>
 </div>
 
 <!-- ══════════════ GAME SCREEN ══════════════ -->
@@ -527,14 +652,39 @@
 
 <!-- Prize card — lives outside screens so z-index stacking works -->
 <div class="prize-card" id="prizeCard">
-  <img class="card-bg" src="card.png" alt="">
-  <div class="card-content">
-    <div class="prize-star">★</div>
-    <div class="prize-gold-line"></div>
-    <div class="prize-label-txt">Ваш приз</div>
-    <div class="prize-value" id="prizeValue">—</div>
+  <div class="card-inner" id="cardInner">
+    <!-- Back face: shown during rise, defines card height -->
+    <div class="card-face card-back">
+      <img src="card_back.png" alt="">
+    </div>
+    <!-- Front face: revealed on flip -->
+    <div class="card-face card-front">
+      <img class="card-bg" id="cardFrontImg" src="" alt="">
+      <div class="card-content">
+        <div class="prize-star">★</div>
+        <div class="prize-gold-line"></div>
+        <div class="prize-label-txt">Ваш приз</div>
+        <div class="prize-value" id="prizeValue">—</div>
+      </div>
+    </div>
   </div>
 </div>
+
+<!-- ══════════════ ALBUM SCREEN ══════════════ -->
+<div class="screen" id="albumScreen">
+  <button class="back-btn" id="albumBackBtn">← Назад</button>
+  <p class="start-title">Альбом</p>
+  <div class="sticker-grid" id="stickerGrid"></div>
+  <div class="sticker-tray">
+    <div class="sticker-source" id="stickerSource">🐱</div>
+    <div class="sticker-tray-label">
+      <span id="stickerCountEl">0</span> наклеек
+    </div>
+  </div>
+</div>
+
+<!-- Drag ghost — fixed, outside all screens -->
+<div class="sticker-ghost" id="stickerGhost">🐱</div>
 
 <button class="home-btn" id="homeBtn">На главную</button>
 <button class="next-booster-btn" id="nextBoosterBtn">Открыть следующий</button>
@@ -551,21 +701,17 @@
   </div>
 </div>
 
-<!-- ══════════════ MY PRIZES POPUP ══════════════ -->
-<div class="popup-overlay" id="prizesPopup">
-  <div class="popup-box">
-    <p class="popup-title">Мои призы</p>
-    <div class="prizes-list" id="prizesList"></div>
-    <button class="popup-close" id="prizesClose">Закрыть</button>
-  </div>
+<!-- ══════════════ PRIZES SCREEN ══════════════ -->
+<div class="screen" id="prizesScreen">
+  <button class="back-btn" id="prizesBackBtn">← Назад</button>
+  <p class="start-title">Мои призы</p>
+  <div class="prizes-list" id="prizesList" style="width:100%;max-width:360px;"></div>
 </div>
 
 <script>
   /* ── DATA ── */
   const PRIZES_DATA = [
     { cat: 'Дешёвый',  name: '-10%',               gold: 8,  foil: 4  },
-    { cat: 'Дешёвый',  name: 'Ещё одна игра',       gold: 8,  foil: 4  },
-    { cat: 'Дешёвый',  name: 'Дополнительный ход',  gold: 8,  foil: 4  },
     { cat: 'Дешёвый',  name: 'Предсказание',        gold: 8,  foil: 4  },
     { cat: 'Средний',  name: '-15%',                gold: 11, foil: 8  },
     { cat: 'Средний',  name: 'Фишка с котом',       gold: 11, foil: 8  },
@@ -582,11 +728,37 @@
     foil: { top: 'booster_foil_top.png', body: 'booster_foil_body.png', label: 'Фолиевый' },
   };
 
+  const CAT_CARD = {
+    'Дешёвый': 'card_green.png',
+    'Средний':  'card_blue.png',
+    'Дорогой':  'card_foil.png',
+  };
+
+  const PARTICLE_COLORS = {
+    'Дешёвый': ['#22c55e','#4ade80','#86efac','#bbf7d0'],
+    'Средний':  ['#3b82f6','#60a5fa','#93c5fd','#bfdbfe'],
+    'Дорогой':  ['#fbbf24','#f59e0b','#e879f9','#a78bfa','#ffffff'],
+  };
+
+  const CAT_LABEL = {
+    'Дешёвый': 'Обычный приз',
+    'Средний':  'Редкий приз',
+    'Дорогой':  'Особенный приз',
+  };
+
+  const CAT_COLOR = {
+    'Дешёвый': '#22c55e',
+    'Средний':  '#3b82f6',
+    'Дорогой':  '#fbbf24',
+  };
+
   /* ── STATE ── */
   const state = {
-    counts:     { gold: 99, foil: 99 },
-    myPrizes:   [],
-    activeType: 'gold',
+    counts:        { gold: 99, foil: 99 },
+    myPrizes:      [],
+    activeType:    'gold',
+    stickerCount:  0,
+    stickersFilled: 0,
   };
 
   /* ── DOM ── */
@@ -618,9 +790,48 @@
     let cum = 0;
     for (const p of PRIZES_DATA) {
       cum += p[type];
-      if (rand < cum) return p.name;
+      if (rand < cum) return { name: p.name, cat: p.cat };
     }
-    return PRIZES_DATA[PRIZES_DATA.length - 1].name;
+    const last = PRIZES_DATA[PRIZES_DATA.length - 1];
+    return { name: last.name, cat: last.cat };
+  }
+
+  /* ── PARTICLES ── */
+  function spawnParticles(cardEl, cat) {
+    const rect   = cardEl.getBoundingClientRect();
+    const cx     = rect.left + rect.width  / 2;
+    const cy     = rect.top  + rect.height / 2;
+    const colors = PARTICLE_COLORS[cat] || PARTICLE_COLORS['Средний'];
+
+    for (let i = 0; i < 18; i++) {
+      const angle = (i / 18) * Math.PI * 2 + Math.random() * 0.4;
+      const dist  = 110 + Math.random() * 170;
+      const tx    = Math.cos(angle) * dist;
+      const ty    = Math.sin(angle) * dist;
+      const color = colors[i % colors.length];
+      const size  = 7.5 + Math.random() * 12;
+      const rot   = Math.random() * 360;
+
+      const p = document.createElement('div');
+      p.className = 'particle';
+      p.style.cssText = `
+        width:${size}px; height:${size}px;
+        background:${color};
+        left:${cx}px; top:${cy}px;
+        transform:translate(-50%,-50%) rotate(${rot}deg);
+        opacity:1;
+        box-shadow:0 0 5px ${color};
+      `;
+      document.body.appendChild(p);
+
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        p.style.transition = 'transform 0.65s ease-out, opacity 0.5s ease 0.18s';
+        p.style.transform  = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) rotate(${rot + 180}deg)`;
+        p.style.opacity    = '0';
+      }));
+
+      setTimeout(() => p.remove(), 900);
+    }
   }
 
   /* ── COUNT DISPLAY ── */
@@ -659,15 +870,9 @@
 
       const tbody = document.getElementById('infoBody');
       tbody.innerHTML = '';
-      let lastCat = null;
       for (const p of PRIZES_DATA) {
-        if (p.cat !== lastCat) {
-          lastCat = p.cat;
-          tbody.insertAdjacentHTML('beforeend',
-            `<tr class="cat-row"><td colspan="2">${p.cat}</td></tr>`);
-        }
         tbody.insertAdjacentHTML('beforeend',
-          `<tr><td>${p.name}</td><td>${p[type]}%</td></tr>`);
+          `<tr><td style="color:${CAT_COLOR[p.cat]}">${p.name}</td><td>${p[type]}%</td></tr>`);
       }
       document.getElementById('infoPopup').classList.add('show');
     });
@@ -680,28 +885,25 @@
     if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
   });
 
-  /* ── MY PRIZES POPUP ── */
-  document.getElementById('myPrizesBtn').addEventListener('click', () => {
+  /* ── MY PRIZES SCREEN ── */
+  function showPrizesScreen() {
     const list = document.getElementById('prizesList');
     if (state.myPrizes.length === 0) {
       list.innerHTML = '<p class="empty-msg">Призов пока нет — открой бустер!</p>';
     } else {
       list.innerHTML = state.myPrizes.map(p =>
         `<div class="prize-item">
-          <span>★ ${p.name}</span>
+          <span style="color:${CAT_COLOR[p.cat] || '#e2e8f0'}">★</span>
+          <span>${p.name}</span>
           <span class="prize-item-tag">${p.packLabel}</span>
         </div>`
       ).join('');
     }
-    document.getElementById('prizesPopup').classList.add('show');
-  });
+    showScreen('prizesScreen');
+  }
 
-  document.getElementById('prizesClose').addEventListener('click', () =>
-    document.getElementById('prizesPopup').classList.remove('show'));
-
-  document.getElementById('prizesPopup').addEventListener('click', e => {
-    if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
-  });
+  document.getElementById('myPrizesBtn').addEventListener('click', showPrizesScreen);
+  document.getElementById('prizesBackBtn').addEventListener('click', () => showScreen('startScreen'));
 
   /* ── BACK BUTTON ── */
   backBtn.addEventListener('click', () => {
@@ -785,9 +987,12 @@
     cutLine.style.width = '100%';
     packTopWrap.style.transform = '';
 
-    const prizeName = pickPrize(state.activeType);
-    prizeValue.textContent = prizeName;
-    state.myPrizes.unshift({ name: prizeName, packLabel: PACKS[state.activeType].label });
+    const prize = pickPrize(state.activeType);
+    prizeValue.textContent = prize.name;
+    document.querySelector('.prize-label-txt').textContent = CAT_LABEL[prize.cat] || 'Ваш приз';
+    state.myPrizes.unshift({ name: prize.name, cat: prize.cat, packLabel: PACKS[state.activeType].label });
+    if (prize.name === 'Фишка с котом') state.stickerCount++;
+    document.getElementById('cardFrontImg').src = CAT_CARD[prize.cat] || 'card_green.png';
 
     setTimeout(() => {
       packTopWrap.classList.add('fly');
@@ -795,9 +1000,7 @@
       setTimeout(() => {
         const bodyRect  = packBodyImg.getBoundingClientRect();
         const centerX   = bodyRect.left + bodyRect.width / 2;
-        const cardBgImg = prizeCard.querySelector('.card-bg');
-        const scale     = bodyRect.width / packBodyImg.naturalWidth;
-        const cardW     = Math.round(cardBgImg.naturalWidth * scale);
+        const cardW = Math.round(bodyRect.width * 0.85);
 
         // Measure height off-screen
         prizeCard.style.cssText = `
@@ -837,12 +1040,20 @@
             transition: 'top 0.55s cubic-bezier(0.34,1.56,0.64,1)',
             top: settleTop + 'px',
           });
+
+          // After settle completes, flip card
           setTimeout(() => {
-            homeBtn.classList.add('visible');
-            if (state.counts[state.activeType] > 0) {
-              nextBoosterBtn.classList.add('visible');
-            }
-          }, 600);
+            document.getElementById('cardInner').classList.add('flipped');
+
+            // After flip completes, particles + buttons
+            setTimeout(() => {
+              spawnParticles(prizeCard, prize.cat);
+              homeBtn.classList.add('visible');
+              if (state.counts[state.activeType] > 0) {
+                nextBoosterBtn.classList.add('visible');
+              }
+            }, 600);
+          }, 700);
         }, 680);
       }, 360);
     }, 80);
@@ -851,6 +1062,8 @@
   function resetGame() {
     opened = false;
     cutProgress = 0;
+
+    document.getElementById('cardInner').classList.remove('flipped');
 
     packTopWrap.style.animation = 'none';
     packTopWrap.style.transform = '';
@@ -879,6 +1092,109 @@
   }));
 
   updateCounts();
+
+  /* ── ALBUM ── */
+  function buildAlbum() {
+    const grid = document.getElementById('stickerGrid');
+    if (grid.children.length) return; // already built
+    for (let i = 0; i < 35; i++) {
+      const s = document.createElement('div');
+      s.className = 'slot';
+      s.dataset.idx = i;
+      grid.appendChild(s);
+    }
+    // Size sticker-source to match a slot
+    requestAnimationFrame(() => {
+      const sz = grid.firstElementChild.getBoundingClientRect().width;
+      const src = document.getElementById('stickerSource');
+      src.style.width = src.style.height = sz + 'px';
+    });
+  }
+
+  function updateStickerUI() {
+    document.getElementById('stickerCountEl').textContent = state.stickerCount;
+    const src = document.getElementById('stickerSource');
+    src.classList.toggle('empty', state.stickerCount === 0);
+
+    document.querySelectorAll('.slot').forEach((s, i) => {
+      const filled = i < state.stickersFilled;
+      const isNext = i === state.stickersFilled && state.stickerCount > 0 && state.stickersFilled < 35;
+      s.classList.toggle('filled',      filled);
+      s.classList.toggle('next-target', isNext);
+      s.textContent = filled ? '🐱' : '';
+    });
+  }
+
+  document.getElementById('albumBtn').addEventListener('click', () => {
+    buildAlbum();
+    updateStickerUI();
+    showScreen('albumScreen');
+  });
+
+  document.getElementById('albumBackBtn').addEventListener('click', () => {
+    showScreen('startScreen');
+  });
+
+  /* ── STICKER DRAG ── */
+  const stickerGhost  = document.getElementById('stickerGhost');
+  const stickerSource = document.getElementById('stickerSource');
+  let stickerDragging = false;
+
+  function stickerXY(e) {
+    const s = e.changedTouches ? e.changedTouches[0] : e;
+    return { x: s.clientX, y: s.clientY };
+  }
+
+  function moveGhost(e) {
+    const { x, y } = stickerXY(e);
+    stickerGhost.style.left = x + 'px';
+    stickerGhost.style.top  = y + 'px';
+  }
+
+  function placeSticker() {
+    if (state.stickersFilled >= 35 || state.stickerCount === 0) return;
+    state.stickersFilled++;
+    state.stickerCount--;
+    updateStickerUI();
+  }
+
+  stickerSource.addEventListener('mousedown', e => {
+    if (state.stickerCount === 0) return;
+    stickerDragging = true;
+    stickerGhost.classList.add('dragging');
+    moveGhost(e);
+  });
+
+  stickerSource.addEventListener('touchstart', e => {
+    if (state.stickerCount === 0) return;
+    stickerDragging = true;
+    stickerGhost.classList.add('dragging');
+    moveGhost(e);
+  }, { passive: true });
+
+  document.addEventListener('mousemove', e => {
+    if (!stickerDragging) return;
+    moveGhost(e);
+  });
+
+  document.addEventListener('touchmove', e => {
+    if (!stickerDragging) return;
+    e.preventDefault();
+    moveGhost(e);
+  }, { passive: false });
+
+  function onStickerDragEnd(e) {
+    if (!stickerDragging) return;
+    stickerDragging = false;
+    stickerGhost.classList.remove('dragging');
+    const { x, y } = stickerXY(e);
+    const el   = document.elementFromPoint(x, y);
+    const grid = document.getElementById('stickerGrid');
+    if (grid && (el === grid || grid.contains(el))) placeSticker();
+  }
+
+  document.addEventListener('mouseup',  onStickerDragEnd);
+  document.addEventListener('touchend', onStickerDragEnd);
 </script>
 </body>
 </html>
