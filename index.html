@@ -612,44 +612,198 @@
       transition: opacity 0.12s;
     }
     .sticker-ghost.dragging { opacity: 1; }
+
+    /* ── START SCREEN REDESIGN ── */
+    #startScreen {
+      background: url('background.png') center/cover no-repeat;
+      padding: 0;
+      justify-content: flex-start;
+      gap: 0;
+    }
+
+    .top-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 48px 16px 12px;
+      gap: 12px;
+    }
+
+    .currency-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(6px);
+      border-radius: 24px;
+      padding: 7px 14px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    .currency-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #1f1f2e;
+    }
+
+    .currency-icon { height: 20px; width: auto; object-fit: contain; }
+
+    .currency-sep { color: #bbb; font-size: 0.85rem; padding: 0 2px; }
+
+    .profile-btn {
+      width: 42px; height: 42px; min-width: 42px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(6px);
+      border: none;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+      transition: transform 0.15s;
+      overflow: hidden;
+    }
+    .profile-btn:hover { transform: scale(1.08); }
+    .profile-btn img { width: 26px; height: 26px; object-fit: contain; }
+
+    .boosters-zone {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 12px;
+    }
+
+    .boosters-container {
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      padding: 20px 10px 16px;
+      width: 100%;
+      display: flex;
+      gap: 8px;
+      align-items: flex-end;
+      box-shadow: 0 4px 28px rgba(0,0,0,0.1);
+    }
+
+    .booster-card {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .pack-preview-start {
+      position: relative;
+      width: 100%;
+      filter: drop-shadow(0 6px 14px rgba(0,0,0,0.2));
+    }
+    .pack-preview-start img { width: 100%; height: auto; display: block; }
+
+    .booster-card .open-btn {
+      width: 100%;
+      font-size: 0.7rem;
+      padding: 8px 2px;
+    }
+
+    .start-bottom {
+      padding: 16px 16px 36px;
+      width: 100%;
+      display: flex;
+      justify-content: center;
+    }
+
+    .album-start-btn {
+      padding: 10px 36px;
+      background: rgba(255,255,255,0.82);
+      color: #7c3aed;
+      border: 2px solid rgba(124,58,237,0.35);
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      backdrop-filter: blur(4px);
+      transition: all 0.2s;
+    }
+    .album-start-btn:hover { border-color: #7c3aed; background: rgba(255,255,255,0.97); }
   </style>
 </head>
 <body>
 
 <!-- ══════════════ START SCREEN ══════════════ -->
 <div class="screen active" id="startScreen">
-  <p class="start-title">Бустерпаки</p>
 
-  <div class="boosters-row">
-    <!-- Gold -->
-    <div class="booster-slot">
-      <div class="pack-preview">
-        <button class="info-btn" data-type="gold">i</button>
-        <img src="booster_gold_top.png" alt="">
-        <img src="booster_gold_body.png" alt="">
-        <div class="count-badge" id="goldCount">99</div>
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div class="currency-row">
+      <div class="currency-item">
+        <img src="crystals.png" class="currency-icon" alt="">
+        <span>300</span>
       </div>
-      <p class="pack-type-label">Золотой</p>
-      <button class="open-btn" id="openGold">Открыть</button>
+      <div class="currency-sep">|</div>
+      <div class="currency-item">
+        <img src="crystals.png" class="currency-icon" alt="">
+        <span>100</span>
+      </div>
     </div>
+    <button class="profile-btn" id="profileBtn">
+      <img src="profile.svg" alt="">
+    </button>
+  </div>
 
-    <!-- Foil -->
-    <div class="booster-slot">
-      <div class="pack-preview">
-        <button class="info-btn" data-type="foil">i</button>
-        <img src="booster_foil_top.png" alt="">
-        <img src="booster_foil_body.png" alt="">
-        <div class="count-badge" id="foilCount">99</div>
+  <!-- Boosters zone -->
+  <div class="boosters-zone">
+    <div class="boosters-container">
+
+      <!-- Gold -->
+      <div class="booster-card">
+        <div class="pack-preview-start">
+          <div class="count-badge" id="goldCount">99</div>
+          <button class="info-btn" data-type="gold">i</button>
+          <img src="booster_gold.png" alt="">
+        </div>
+        <p class="pack-type-label">Золотой</p>
+        <button class="open-btn" id="openGold">Открыть</button>
       </div>
-      <p class="pack-type-label">Фолиевый</p>
-      <button class="open-btn" id="openFoil">Открыть</button>
+
+      <!-- Foil -->
+      <div class="booster-card">
+        <div class="pack-preview-start">
+          <div class="count-badge" id="foilCount">99</div>
+          <button class="info-btn" data-type="foil">i</button>
+          <img src="booster_foil.png" alt="">
+        </div>
+        <p class="pack-type-label">Фолиевый</p>
+        <button class="open-btn" id="openFoil">Открыть</button>
+      </div>
+
+      <!-- Kitty -->
+      <div class="booster-card">
+        <div class="pack-preview-start">
+          <div class="count-badge" id="kittyCount">99</div>
+          <button class="info-btn" data-type="kitty">i</button>
+          <img src="booster_cat.png" alt="">
+        </div>
+        <p class="pack-type-label">Котиковый</p>
+        <button class="open-btn" id="openKitty">Открыть</button>
+      </div>
+
     </div>
   </div>
 
-  <div class="start-actions">
-    <button class="my-prizes-btn" id="myPrizesBtn">Мои призы</button>
-    <button class="my-prizes-btn" id="albumBtn">Альбом</button>
+  <!-- Bottom -->
+  <div class="start-bottom">
+    <button class="album-start-btn" id="albumBtn">Альбом</button>
   </div>
+
 </div>
 
 <!-- ══════════════ GAME SCREEN ══════════════ -->
@@ -742,21 +896,22 @@
 <script>
   /* ── DATA ── */
   const PRIZES_DATA = [
-    { cat: 'Дешёвый',  name: '-10%',               gold: 8,  foil: 4  },
-    { cat: 'Дешёвый',  name: 'Предсказание',        gold: 8,  foil: 4  },
-    { cat: 'Средний',  name: '-15%',                gold: 11, foil: 8  },
-    { cat: 'Средний',  name: 'Фишка с котом',       gold: 11, foil: 8  },
-    { cat: 'Средний',  name: 'Скидка на сладкое',   gold: 11, foil: 7  },
-    { cat: 'Средний',  name: 'Кошачий корм',        gold: 11, foil: 8  },
-    { cat: 'Средний',  name: 'Билет',               gold: 11, foil: 8  },
-    { cat: 'Дорогой',  name: 'Кофе',                gold: 5,  foil: 15 },
-    { cat: 'Дорогой',  name: '-20%',                gold: 4,  foil: 15 },
-    { cat: 'Дорогой',  name: '50 бонусов',          gold: 4,  foil: 15 },
+    { cat: 'Дешёвый',  name: '-10%',               gold: 10, foil: 4,  kitty: 4  },
+    { cat: 'Дешёвый',  name: 'Предсказание',        gold: 11, foil: 4,  kitty: 4  },
+    { cat: 'Дорогой',  name: 'Кофе',                gold: 8,  foil: 15, kitty: 10 },
+    { cat: 'Дорогой',  name: '-20%',                gold: 8,  foil: 15, kitty: 10 },
+    { cat: 'Дорогой',  name: '50 бонусов',          gold: 8,  foil: 15, kitty: 10 },
+    { cat: 'Средний',  name: '-15%',                gold: 11, foil: 8,  kitty: 10 },
+    { cat: 'Средний',  name: 'Фишка с котом',       gold: 11, foil: 8,  kitty: 30 },
+    { cat: 'Средний',  name: 'Скидка на сладкое',   gold: 11, foil: 7,  kitty: 10 },
+    { cat: 'Средний',  name: 'Кошачий корм',        gold: 11, foil: 8,  kitty: 5  },
+    { cat: 'Средний',  name: 'Билет',               gold: 11, foil: 8,  kitty: 7  },
   ];
 
   const PACKS = {
-    gold: { top: 'booster_gold_top.png', body: 'booster_gold_body.png', label: 'Золотой' },
-    foil: { top: 'booster_foil_top.png', body: 'booster_foil_body.png', label: 'Фолиевый' },
+    gold:  { top: 'booster_gold_top.png', body: 'booster_gold_body.png', label: 'Золотой'   },
+    foil:  { top: 'booster_foil_top.png', body: 'booster_foil_body.png', label: 'Фолиевый'  },
+    kitty: { top: 'booster_cat.png',      body: 'booster_cat.png',       label: 'Котиковый' },
   };
 
   const CAT_CARD = {
@@ -785,7 +940,7 @@
 
   /* ── STATE ── */
   const state = {
-    counts:        { gold: 99, foil: 99 },
+    counts:        { gold: 99, foil: 99, kitty: 99 },
     myPrizes:      [],
     activeType:    'gold',
     stickerCount:  100,
@@ -867,15 +1022,18 @@
 
   /* ── COUNT DISPLAY ── */
   function updateCounts() {
-    document.getElementById('goldCount').textContent = state.counts.gold;
-    document.getElementById('foilCount').textContent = state.counts.foil;
-    document.getElementById('openGold').disabled = state.counts.gold <= 0;
-    document.getElementById('openFoil').disabled = state.counts.foil <= 0;
+    document.getElementById('goldCount').textContent  = state.counts.gold;
+    document.getElementById('foilCount').textContent  = state.counts.foil;
+    document.getElementById('kittyCount').textContent = state.counts.kitty;
+    document.getElementById('openGold').disabled  = state.counts.gold  <= 0;
+    document.getElementById('openFoil').disabled  = state.counts.foil  <= 0;
+    document.getElementById('openKitty').disabled = state.counts.kitty <= 0;
   }
 
   /* ── START SCREEN ACTIONS ── */
-  document.getElementById('openGold').addEventListener('click', () => startPack('gold'));
-  document.getElementById('openFoil').addEventListener('click', () => startPack('foil'));
+  document.getElementById('openGold').addEventListener('click',  () => startPack('gold'));
+  document.getElementById('openFoil').addEventListener('click',  () => startPack('foil'));
+  document.getElementById('openKitty').addEventListener('click', () => startPack('kitty'));
 
   function startPack(type) {
     if (state.counts[type] <= 0) return;
@@ -933,7 +1091,7 @@
     showScreen('prizesScreen');
   }
 
-  document.getElementById('myPrizesBtn').addEventListener('click', showPrizesScreen);
+  document.getElementById('profileBtn').addEventListener('click', showPrizesScreen);
   document.getElementById('prizesBackBtn').addEventListener('click', () => showScreen('startScreen'));
 
   /* ── BACK BUTTON ── */
