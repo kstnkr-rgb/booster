@@ -734,6 +734,69 @@
       transition: all 0.2s;
     }
     .album-start-btn:hover { border-color: #7c3aed; background: rgba(255,255,255,0.97); }
+
+    /* ── ALBUM SCREEN LIGHT THEME ── */
+    #albumScreen {
+      background: url('background.png') center/cover no-repeat;
+      padding: 0;
+      justify-content: flex-start;
+    }
+
+    .album-top-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 48px 16px 12px;
+    }
+
+    .album-back-btn {
+      background: rgba(255,255,255,0.82);
+      border: none;
+      border-radius: 20px;
+      padding: 7px 14px;
+      color: #4b5563;
+      font-size: 0.78rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-weight: 600;
+      transition: color 0.2s, background 0.2s;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    .album-back-btn:hover { color: #7c3aed; background: rgba(255,255,255,0.97); }
+
+    .album-screen-title {
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #1f2937;
+    }
+
+    .album-content {
+      flex: 1;
+      width: 100%;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding: 0 12px 24px;
+      overflow-y: auto;
+    }
+
+    .album-card {
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      padding: 20px 16px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 4px 28px rgba(0,0,0,0.1);
+    }
   </style>
 </head>
 <body>
@@ -745,7 +808,7 @@
   <div class="top-bar">
     <div class="currency-row">
       <div class="currency-item">
-        <img src="crystals.png" class="currency-icon" alt="">
+        <span style="font-size:17px;line-height:1;">🌿</span>
         <span>300</span>
       </div>
       <div class="currency-sep">|</div>
@@ -847,13 +910,20 @@
 
 <!-- ══════════════ ALBUM SCREEN ══════════════ -->
 <div class="screen" id="albumScreen">
-  <button class="back-btn" id="albumBackBtn">← Назад</button>
-  <p class="start-title">Альбом</p>
-  <div class="sticker-grid" id="stickerGrid"></div>
-  <div class="sticker-tray">
-    <div class="sticker-source" id="stickerSource">🐱</div>
-    <div class="sticker-tray-label">
-      <span id="stickerCountEl">0</span> наклеек
+  <div class="album-top-bar">
+    <button class="album-back-btn" id="albumBackBtn">← Назад</button>
+    <p class="album-screen-title">Альбом</p>
+    <div style="width:80px"></div>
+  </div>
+  <div class="album-content">
+    <div class="album-card">
+      <div class="sticker-grid" id="stickerGrid"></div>
+      <div class="sticker-tray">
+        <div class="sticker-source" id="stickerSource">🐱</div>
+        <div class="sticker-tray-label">
+          <span id="stickerCountEl">0</span> наклеек
+        </div>
+      </div>
     </div>
   </div>
 </div>
