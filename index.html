@@ -523,19 +523,40 @@
       align-items: center;
       justify-content: center;
       font-size: 1.1em;
-      transition: background 0.25s, border-color 0.25s;
+      transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
     }
-    .slot.filled {
-      background: rgba(167,139,250,0.18);
-      border-color: #a78bfa;
+
+    /* Silver zone: slots 1–25 */
+    .slot.zone-silver {
+      border-color: rgba(192,192,192,0.45);
+      background: rgba(192,192,192,0.07);
     }
-    .slot.next-target {
+    .slot.zone-silver.filled {
+      background: rgba(192,192,192,0.2);
+      border-color: #c0c0c0;
+      box-shadow: 0 0 8px rgba(192,192,192,0.4);
+    }
+
+    /* Gold zone: slots 26–35 */
+    .slot.zone-gold {
+      border-color: rgba(251,191,36,0.45);
+      background: rgba(251,191,36,0.07);
+    }
+    .slot.zone-gold.filled {
+      background: rgba(251,191,36,0.2);
       border-color: #fbbf24;
+      box-shadow: 0 0 8px rgba(251,191,36,0.5);
+    }
+
+    .slot.next-target {
       animation: slotPulse 1s ease-in-out infinite;
     }
+    .slot.zone-silver.next-target { border-color: #c0c0c0; }
+    .slot.zone-gold.next-target   { border-color: #fbbf24; }
+
     @keyframes slotPulse {
-      0%,100% { box-shadow: 0 0 6px rgba(251,191,36,0.35); }
-      50%      { box-shadow: 0 0 16px rgba(251,191,36,0.75); }
+      0%,100% { box-shadow: 0 0 6px rgba(255,255,255,0.25); }
+      50%      { box-shadow: 0 0 18px rgba(255,255,255,0.6); }
     }
 
     .sticker-tray {
@@ -689,6 +710,16 @@
 <button class="home-btn" id="homeBtn">На главную</button>
 <button class="next-booster-btn" id="nextBoosterBtn">Открыть следующий</button>
 
+<!-- ══════════════ ALBUM COMPLETE POPUP ══════════════ -->
+<div class="popup-overlay" id="albumCompletePopup">
+  <div class="popup-box" style="text-align:center;gap:20px;">
+    <div style="font-size:2.4rem;line-height:1;">🐱</div>
+    <p class="popup-title" style="font-size:1rem;letter-spacing:1.5px;">Поздравляем!</p>
+    <p style="font-size:0.88rem;color:#d1d5db;line-height:1.55;">Теперь вы можете приобрести милого котика всего за <span style="color:#fbbf24;font-weight:700;">1 рубль</span></p>
+    <button class="popup-close" id="albumCompleteClose">Ура!</button>
+  </div>
+</div>
+
 <!-- ══════════════ INFO POPUP ══════════════ -->
 <div class="popup-overlay" id="infoPopup">
   <div class="popup-box">
@@ -757,7 +788,7 @@
     counts:        { gold: 99, foil: 99 },
     myPrizes:      [],
     activeType:    'gold',
-    stickerCount:  0,
+    stickerCount:  100,
     stickersFilled: 0,
   };
 
@@ -1099,7 +1130,7 @@
     if (grid.children.length) return; // already built
     for (let i = 0; i < 35; i++) {
       const s = document.createElement('div');
-      s.className = 'slot';
+      s.className = 'slot ' + (i < 25 ? 'zone-silver' : 'zone-gold');
       s.dataset.idx = i;
       grid.appendChild(s);
     }
@@ -1156,7 +1187,16 @@
     state.stickersFilled++;
     state.stickerCount--;
     updateStickerUI();
+    if (state.stickersFilled >= 35) {
+      setTimeout(() => {
+        document.getElementById('albumCompletePopup').classList.add('show');
+      }, 300);
+    }
   }
+
+  document.getElementById('albumCompleteClose').addEventListener('click', () => {
+    document.getElementById('albumCompletePopup').classList.remove('show');
+  });
 
   stickerSource.addEventListener('mousedown', e => {
     if (state.stickerCount === 0) return;
