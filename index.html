@@ -892,6 +892,9 @@
       gap: 8px;
       box-shadow: 0 4px 28px rgba(0,0,0,0.1);
     }
+    .prizes-card .prize-item { color: #1f2937; background: rgba(0,0,0,0.04); }
+    .prizes-card .prize-item-tag { color: #6b7280; background: rgba(124,58,237,0.1); }
+    .prizes-card .empty-msg { color: #6b7280; }
 
     /* ── SLOT NUMBERS ── */
     .slot:not(.filled) {
@@ -1610,6 +1613,7 @@
 
   document.querySelectorAll('.shop-buy-btn').forEach(btn => {
     btn.addEventListener('click', () => {
+      if (!btn.dataset.type) return;
       buyType = btn.dataset.type;
       document.getElementById('buyTitle').textContent = PACKS[buyType].label;
       document.getElementById('buyImg').src = PACK_PREVIEW[buyType];
