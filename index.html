@@ -939,6 +939,23 @@
     .slot.zone-silver:not(.filled) { color: rgba(180,180,200,0.7); }
     .slot.zone-gold:not(.filled)   { color: rgba(200,160,40,0.8); }
 
+    /* ── ALBUM COMPLETE POPUP — anchored to bottom ── */
+    #albumCompletePopup {
+      align-items: flex-end;
+      padding-bottom: 44px;
+      background: rgba(0,0,0,0.55);
+    }
+
+    /* ── QR POPUP ── */
+    .qr-img {
+      width: 100%;
+      max-width: 220px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      border-radius: 12px;
+    }
+
     /* ── BUY POPUP ── */
     .buy-booster-img {
       width: 80px;
@@ -1181,6 +1198,16 @@
   </div>
 </div>
 
+<!-- ══════════════ QR POPUP ══════════════ -->
+<div class="popup-overlay" id="qrPopup">
+  <div class="popup-box" style="text-align:center;gap:16px;max-width:300px;">
+    <p class="popup-title">Ваш приз 🐱</p>
+    <p style="font-size:0.82rem;color:#9ca3af;">Покажите этот QR-код на кассе</p>
+    <img src="qr.png" class="qr-img" alt="QR-код">
+    <button class="popup-close" id="qrClose">Закрыть</button>
+  </div>
+</div>
+
 <!-- ══════════════ INFO POPUP ══════════════ -->
 <div class="popup-overlay" id="infoPopup">
   <div class="popup-box">
@@ -1266,6 +1293,8 @@
     stickerCount:  100,
     stickersFilled: 0,
   };
+
+  let albumCompleteToy = null; // ссылка на плавающую картинку кота
 
   /* ── DOM ── */
   const startScreen = document.getElementById('startScreen');
@@ -1407,16 +1436,36 @@
     if (state.myPrizes.length === 0) {
       list.innerHTML = '<p class="empty-msg">Призов пока нет — открой бустер!</p>';
     } else {
-      list.innerHTML = state.myPrizes.map(p =>
-        `<div class="prize-item">
+      list.innerHTML = state.myPrizes.map(p => {
+        if (p.isAlbumPrize) {
+          return `<div class="prize-item prize-album-item" style="cursor:pointer;border:1.5px solid rgba(251,191,36,0.4);background:rgba(251,191,36,0.06);">
+            <span style="font-size:1.4em;line-height:1;">🐱</span>
+            <span style="color:#1f2937;font-weight:600;">${p.name}</span>
+            <span class="prize-item-tag" style="background:rgba(251,191,36,0.18);color:#92400e;">${p.packLabel}</span>
+            <span style="margin-left:4px;font-size:0.72rem;color:#fbbf24;font-weight:700;">QR →</span>
+          </div>`;
+        }
+        return `<div class="prize-item">
           <span style="color:${CAT_COLOR[p.cat] || '#e2e8f0'}">★</span>
           <span>${p.name}</span>
           <span class="prize-item-tag">${p.packLabel}</span>
-        </div>`
-      ).join('');
+        </div>`;
+      }).join('');
+      // Клик на котика → QR
+      list.querySelectorAll('.prize-album-item').forEach(el => {
+        el.addEventListener('click', () => {
+          document.getElementById('qrPopup').classList.add('show');
+        });
+      });
     }
     showScreen('prizesScreen');
   }
+
+  document.getElementById('qrClose').addEventListener('click', () =>
+    document.getElementById('qrPopup').classList.remove('show'));
+  document.getElementById('qrPopup').addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+  });
 
   document.getElementById('profileBtn').addEventListener('click', showPrizesScreen);
   document.getElementById('albumProfileBtn').addEventListener('click', showPrizesScreen);
@@ -1607,9 +1656,9 @@
   function buildAlbum() {
     const grid = document.getElementById('stickerGrid');
     if (grid.children.length) return;
-    for (let i = 0; i < 35; i++) {
+    for (let i = 0; i < 20; i++) {
       const s = document.createElement('div');
-      s.className = 'slot ' + (i < 25 ? 'zone-silver' : 'zone-gold');
+      s.className = 'slot ' + (i < 15 ? 'zone-silver' : 'zone-gold');
       s.dataset.idx = i;
       grid.appendChild(s);
     }
@@ -1627,7 +1676,7 @@
 
     document.querySelectorAll('.slot').forEach((s, i) => {
       const filled = i < state.stickersFilled;
-      const isNext = i === state.stickersFilled && state.stickerCount > 0 && state.stickersFilled < 35;
+      const isNext = i === state.stickersFilled && state.stickerCount > 0 && state.stickersFilled < 20;
       s.classList.toggle('filled',      filled);
       s.classList.toggle('next-target', isNext);
       s.textContent = filled ? '🐱' : String(i + 1);
@@ -1751,10 +1800,10 @@
             merged.remove();
             slots.forEach(s => { s.style.opacity = ''; });
 
-            // 5. cat_toy image appears
-            const toy = document.createElement('img');
-            toy.src = 'cat_toy.png';
-            toy.style.cssText = `
+            // 5. cat_toy image appears — stays visible above popup overlay
+            albumCompleteToy = document.createElement('img');
+            albumCompleteToy.src = 'cat_toy.png';
+            albumCompleteToy.style.cssText = `
               position:fixed; z-index:600; pointer-events:none;
               width:220px; height:auto;
               left:${cx}px; top:${cy}px;
@@ -1762,19 +1811,19 @@
               transition:transform 0.65s cubic-bezier(0.34,1.56,0.64,1);
               filter:drop-shadow(0 10px 32px rgba(0,0,0,0.45));
             `;
-            document.body.appendChild(toy);
+            document.body.appendChild(albumCompleteToy);
             requestAnimationFrame(() => requestAnimationFrame(() => {
-              toy.style.transform = 'translate(-50%, -50%) scale(1) rotate(0deg)';
+              albumCompleteToy.style.transform = 'translate(-50%, -50%) scale(1) rotate(0deg)';
             }));
 
-            // 6. Congratulations popup
+            // Добавляем приз "Котик" в список (один раз)
+            if (!state.myPrizes.find(p => p.isAlbumPrize)) {
+              state.myPrizes.unshift({ name: 'Котик за 1 рубль', cat: 'Дорогой', packLabel: 'Альбом', isAlbumPrize: true });
+            }
+
+            // 6. Попап появляется снизу (z-index:200 < 600, поэтому кот над ним)
             setTimeout(() => {
               document.getElementById('albumCompletePopup').classList.add('show');
-              setTimeout(() => {
-                toy.style.transition = 'opacity 0.4s';
-                toy.style.opacity    = '0';
-                setTimeout(() => toy.remove(), 450);
-              }, 500);
             }, 900);
           }, 260);
         }, 500);
@@ -1836,6 +1885,15 @@
 
   document.getElementById('albumCompleteClose').addEventListener('click', () => {
     document.getElementById('albumCompletePopup').classList.remove('show');
+    // Убираем картинку кота
+    if (albumCompleteToy) {
+      albumCompleteToy.style.transition = 'opacity 0.4s';
+      albumCompleteToy.style.opacity    = '0';
+      setTimeout(() => { if (albumCompleteToy) { albumCompleteToy.remove(); albumCompleteToy = null; } }, 450);
+    }
+    // Обнуляем альбом
+    state.stickersFilled = 0;
+    updateStickerUI();
   });
 
   /* ── STICKER DRAG ── */
@@ -1855,11 +1913,11 @@
   }
 
   function placeSticker() {
-    if (state.stickersFilled >= 35 || state.stickerCount === 0) return;
+    if (state.stickersFilled >= 20 || state.stickerCount === 0) return;
     state.stickersFilled++;
     state.stickerCount--;
     updateStickerUI();
-    if (state.stickersFilled >= 35) {
+    if (state.stickersFilled >= 20) {
       setTimeout(() => playAlbumCompleteAnimation(), 400);
     }
   }
