@@ -218,11 +218,6 @@
       transition: opacity 0.4s;
     }
 
-    /*
-      pack-area z:2 covers prize-card z:1 while card is inside pack bounds.
-      filter: drop-shadow creates a new stacking context so siblings compare
-      z-index in the body context.
-    */
     .pack-area {
       position: relative;
       z-index: 2;
@@ -294,7 +289,6 @@
       pointer-events: none;
     }
 
-    /* Prize card — z:1 while inside pack, switches to z:5 above tear line */
     .prize-card {
       position: fixed;
       opacity: 0;
@@ -315,10 +309,8 @@
       backface-visibility: hidden;
       -webkit-backface-visibility: hidden;
     }
-    /* back face is normal flow — defines card height */
     .card-face.card-back img { width: 100%; height: auto; display: block; }
 
-    /* front face overlays absolutely */
     .card-face.card-front {
       position: absolute;
       inset: 0;
@@ -342,7 +334,6 @@
     .prize-label-txt { font-size: 9px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: #9ca3af; }
     .prize-value     { font-size: 22px; font-weight: 800; color: #111827; text-align: center; line-height: 1.25; }
 
-    /* Particles */
     .particle {
       position: fixed;
       border-radius: 50%;
@@ -350,7 +341,6 @@
       z-index: 200;
     }
 
-    /* "На главную" button after opening */
     .home-btn {
       position: fixed;
       bottom: 100px;
@@ -526,7 +516,6 @@
       transition: background 0.25s, border-color 0.25s, box-shadow 0.25s;
     }
 
-    /* Silver zone: slots 1–25 */
     .slot.zone-silver {
       border-color: rgba(192,192,192,0.45);
       background: rgba(192,192,192,0.07);
@@ -537,7 +526,6 @@
       box-shadow: 0 0 8px rgba(192,192,192,0.4);
     }
 
-    /* Gold zone: slots 26–35 */
     .slot.zone-gold {
       border-color: rgba(251,191,36,0.45);
       background: rgba(251,191,36,0.07);
@@ -558,6 +546,16 @@
       0%,100% { box-shadow: 0 0 6px rgba(255,255,255,0.25); }
       50%      { box-shadow: 0 0 18px rgba(255,255,255,0.6); }
     }
+
+    /* ── ALBUM COMPLETE ANIMATION ── */
+    @keyframes albumShake {
+      0%,100% { transform: translate(0,0) rotate(0deg); }
+      20%     { transform: translate(-4px, 3px) rotate(-3deg); }
+      40%     { transform: translate(4px,-3px) rotate(3deg); }
+      60%     { transform: translate(-3px, 4px) rotate(-2deg); }
+      80%     { transform: translate(3px,-2px) rotate(2deg); }
+    }
+    .album-shake { animation: albumShake 0.55s ease-in-out; }
 
     .sticker-tray {
       display: flex;
@@ -678,6 +676,14 @@
       padding: 0 12px;
     }
 
+    .boosters-zone-inner {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+    }
+
     .boosters-container {
       background: rgba(255,255,255,0.78);
       backdrop-filter: blur(12px);
@@ -712,12 +718,13 @@
       padding: 8px 2px;
     }
 
+    /* ── BUTTONS ROW BELOW BOOSTERS ── */
     .start-bottom {
-      padding: 16px 16px 36px;
       width: 100%;
       display: flex;
       justify-content: center;
       gap: 12px;
+      padding: 0 6px 0;
     }
 
     .shop-grid {
@@ -838,6 +845,15 @@
       overflow-y: auto;
     }
 
+    .album-content-inner {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      padding-bottom: 8px;
+    }
+
     .album-card {
       background: rgba(255,255,255,0.78);
       backdrop-filter: blur(12px);
@@ -850,6 +866,25 @@
       gap: 16px;
       box-shadow: 0 4px 28px rgba(0,0,0,0.1);
     }
+
+    /* ── GET STICKERS BUTTON ── */
+    .get-stickers-btn {
+      width: 100%;
+      max-width: 364px;
+      padding: 15px 24px;
+      background: linear-gradient(145deg, #7c3aed, #6d28d9);
+      color: #fff;
+      border: none;
+      border-radius: 16px;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      box-shadow: 0 4px 22px rgba(109,40,217,0.55);
+      transition: all 0.2s;
+    }
+    .get-stickers-btn:hover { transform: translateY(-2px); box-shadow: 0 7px 26px rgba(124,58,237,0.65); }
+    .get-stickers-btn:active { transform: translateY(0); }
 
     /* ── GAME & PRIZES SCREEN BACKGROUNDS ── */
     #gameScreen {
@@ -941,8 +976,36 @@
 </head>
 <body>
 
-<!-- ══════════════ START SCREEN ══════════════ -->
-<div class="screen active" id="startScreen">
+<!-- ══════════════ ALBUM SCREEN (HOME) ══════════════ -->
+<div class="screen active" id="albumScreen">
+  <div class="album-top-bar">
+    <div style="width:80px"></div>
+    <p class="album-screen-title">Альбом</p>
+    <button class="album-back-btn" id="albumProfileBtn">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="8" r="4" fill="#7c3aed"/>
+        <path d="M4 20c0-4.418 3.582-8 8-8s8 3.582 8 8" stroke="#7c3aed" stroke-width="2.2" stroke-linecap="round"/>
+      </svg>
+    </button>
+  </div>
+  <div class="album-content">
+    <div class="album-content-inner">
+      <div class="album-card">
+        <div class="sticker-grid" id="stickerGrid"></div>
+        <div class="sticker-tray">
+          <div class="sticker-source" id="stickerSource">🐱</div>
+          <div class="sticker-tray-label">
+            <span id="stickerCountEl">0</span> наклеек
+          </div>
+        </div>
+      </div>
+      <button class="get-stickers-btn" id="getStickersBtn">🎁 Получить наклейки и призы</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ START SCREEN (BOOSTERS) ══════════════ -->
+<div class="screen" id="startScreen">
 
   <!-- Top bar -->
   <div class="top-bar">
@@ -957,48 +1020,50 @@
 
   <!-- Boosters zone -->
   <div class="boosters-zone">
-    <div class="boosters-container">
+    <div class="boosters-zone-inner">
 
-      <!-- Gold -->
-      <div class="booster-card">
-        <div class="pack-preview-start">
-          <div class="count-badge" id="goldCount">99</div>
-          <button class="info-btn" data-type="gold">i</button>
-          <img src="booster_gold.png" alt="">
+      <div class="boosters-container">
+        <!-- Gold -->
+        <div class="booster-card">
+          <div class="pack-preview-start">
+            <div class="count-badge" id="goldCount">99</div>
+            <button class="info-btn" data-type="gold">i</button>
+            <img src="booster_gold.png" alt="">
+          </div>
+          <p class="pack-type-label">Золотой</p>
+          <button class="open-btn" id="openGold">Открыть</button>
         </div>
-        <p class="pack-type-label">Золотой</p>
-        <button class="open-btn" id="openGold">Открыть</button>
+
+        <!-- Foil -->
+        <div class="booster-card">
+          <div class="pack-preview-start">
+            <div class="count-badge" id="foilCount">99</div>
+            <button class="info-btn" data-type="foil">i</button>
+            <img src="booster_foil.png" alt="">
+          </div>
+          <p class="pack-type-label">Фолиевый</p>
+          <button class="open-btn" id="openFoil">Открыть</button>
+        </div>
+
+        <!-- Kitty -->
+        <div class="booster-card">
+          <div class="pack-preview-start">
+            <div class="count-badge" id="kittyCount">99</div>
+            <button class="info-btn" data-type="kitty">i</button>
+            <img src="booster_cat.png" alt="">
+          </div>
+          <p class="pack-type-label">Котиковый</p>
+          <button class="open-btn" id="openKitty">Открыть</button>
+        </div>
       </div>
 
-      <!-- Foil -->
-      <div class="booster-card">
-        <div class="pack-preview-start">
-          <div class="count-badge" id="foilCount">99</div>
-          <button class="info-btn" data-type="foil">i</button>
-          <img src="booster_foil.png" alt="">
-        </div>
-        <p class="pack-type-label">Фолиевый</p>
-        <button class="open-btn" id="openFoil">Открыть</button>
-      </div>
-
-      <!-- Kitty -->
-      <div class="booster-card">
-        <div class="pack-preview-start">
-          <div class="count-badge" id="kittyCount">99</div>
-          <button class="info-btn" data-type="kitty">i</button>
-          <img src="booster_cat.png" alt="">
-        </div>
-        <p class="pack-type-label">Котиковый</p>
-        <button class="open-btn" id="openKitty">Открыть</button>
+      <!-- Buttons right below boosters -->
+      <div class="start-bottom">
+        <button class="album-start-btn" id="shopBtn">Магазин</button>
+        <button class="album-start-btn" id="albumBtn">Альбом</button>
       </div>
 
     </div>
-  </div>
-
-  <!-- Bottom -->
-  <div class="start-bottom">
-    <button class="album-start-btn" id="shopBtn">Магазин</button>
-    <button class="album-start-btn" id="albumBtn">Альбом</button>
   </div>
 
 </div>
@@ -1025,11 +1090,9 @@
 <!-- Prize card — lives outside screens so z-index stacking works -->
 <div class="prize-card" id="prizeCard">
   <div class="card-inner" id="cardInner">
-    <!-- Back face: shown during rise, defines card height -->
     <div class="card-face card-back">
       <img src="card_back.png" alt="">
     </div>
-    <!-- Front face: revealed on flip -->
     <div class="card-face card-front">
       <img class="card-bg" id="cardFrontImg" src="" alt="">
       <div class="card-content">
@@ -1037,26 +1100,6 @@
         <div class="prize-gold-line"></div>
         <div class="prize-label-txt">Ваш приз</div>
         <div class="prize-value" id="prizeValue">—</div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- ══════════════ ALBUM SCREEN ══════════════ -->
-<div class="screen" id="albumScreen">
-  <div class="album-top-bar">
-    <button class="album-back-btn" id="albumBackBtn">← Назад</button>
-    <p class="album-screen-title">Альбом</p>
-    <div style="width:80px"></div>
-  </div>
-  <div class="album-content">
-    <div class="album-card">
-      <div class="sticker-grid" id="stickerGrid"></div>
-      <div class="sticker-tray">
-        <div class="sticker-source" id="stickerSource">🐱</div>
-        <div class="sticker-tray-label">
-          <span id="stickerCountEl">0</span> наклеек
-        </div>
       </div>
     </div>
   </div>
@@ -1376,12 +1419,12 @@
   }
 
   document.getElementById('profileBtn').addEventListener('click', showPrizesScreen);
-  document.getElementById('prizesBackBtn').addEventListener('click', () => showScreen('startScreen'));
+  document.getElementById('albumProfileBtn').addEventListener('click', showPrizesScreen);
+  document.getElementById('prizesBackBtn').addEventListener('click', () => showScreen('albumScreen'));
 
   /* ── BACK BUTTON ── */
   backBtn.addEventListener('click', () => {
     if (!opened) {
-      // Pack not yet opened — return it
       state.counts[state.activeType]++;
       updateCounts();
     }
@@ -1390,18 +1433,17 @@
     showScreen('startScreen');
   });
 
-  /* ── HOME BUTTON (after opening) ── */
+  /* ── HOME BUTTON (after opening) → album ── */
   homeBtn.addEventListener('click', () => {
     resetGame();
     prizeCard.style.cssText = 'position:fixed;opacity:0;z-index:1;pointer-events:none;';
-    showScreen('startScreen');
+    showScreen('albumScreen');
   });
 
   /* ── NEXT BOOSTER BUTTON ── */
   nextBoosterBtn.addEventListener('click', () => {
     const type = state.activeType;
     if (state.counts[type] <= 0) {
-      // No more of this type — go home
       resetGame();
       prizeCard.style.cssText = 'position:fixed;opacity:0;z-index:1;pointer-events:none;';
       showScreen('startScreen');
@@ -1476,7 +1518,6 @@
         const centerX   = bodyRect.left + bodyRect.width / 2;
         const cardW = Math.round(bodyRect.width * 0.85);
 
-        // Measure height off-screen
         prizeCard.style.cssText = `
           position:fixed;
           width:${cardW}px;
@@ -1490,7 +1531,6 @@
         void prizeCard.offsetHeight;
         const cardH = prizeCard.offsetHeight;
 
-        // Start centered in pack body (hidden behind pack z:2)
         const startTop = bodyRect.top + (bodyRect.height - cardH) / 2;
         Object.assign(prizeCard.style, {
           top: startTop + 'px',
@@ -1499,14 +1539,12 @@
         });
         void prizeCard.offsetWidth;
 
-        // Phase 1: rise until card bottom is 5px above pack body top
         const overshootTop = bodyRect.top - cardH - 5;
         Object.assign(prizeCard.style, {
           transition: 'top 0.65s cubic-bezier(0.22,1,0.36,1)',
           top: overshootTop + 'px',
         });
 
-        // Phase 2: z-index flip → settle onto pack body
         setTimeout(() => {
           const settleTop = bodyRect.top + 16;
           Object.assign(prizeCard.style, {
@@ -1515,11 +1553,9 @@
             top: settleTop + 'px',
           });
 
-          // After settle completes, flip card
           setTimeout(() => {
             document.getElementById('cardInner').classList.add('flipped');
 
-            // After flip completes, particles + buttons
             setTimeout(() => {
               spawnParticles(prizeCard, prize.cat);
               homeBtn.classList.add('visible');
@@ -1561,7 +1597,6 @@
   document.addEventListener('mouseup',    onEnd);
   document.addEventListener('touchend',   onEnd);
 
-  // Preload all images
   Object.values(PACKS).forEach(p => [p.top, p.body].forEach(src => {
     new Image().src = src;
   }));
@@ -1571,14 +1606,13 @@
   /* ── ALBUM ── */
   function buildAlbum() {
     const grid = document.getElementById('stickerGrid');
-    if (grid.children.length) return; // already built
+    if (grid.children.length) return;
     for (let i = 0; i < 35; i++) {
       const s = document.createElement('div');
       s.className = 'slot ' + (i < 25 ? 'zone-silver' : 'zone-gold');
       s.dataset.idx = i;
       grid.appendChild(s);
     }
-    // Size sticker-source to match a slot
     requestAnimationFrame(() => {
       const sz = grid.firstElementChild.getBoundingClientRect().width;
       const src = document.getElementById('stickerSource');
@@ -1598,6 +1632,154 @@
       s.classList.toggle('next-target', isNext);
       s.textContent = filled ? '🐱' : String(i + 1);
     });
+  }
+
+  /* ── ALBUM COMPLETE ANIMATION ── */
+  function spawnBurstParticles(cx, cy) {
+    const colors = ['#a78bfa','#c4b5fd','#7c3aed','#fbbf24','#f9fafb','#fb923c'];
+    for (let i = 0; i < 30; i++) {
+      const angle = (i / 30) * Math.PI * 2 + Math.random() * 0.3;
+      const dist  = 80 + Math.random() * 150;
+      const tx    = Math.cos(angle) * dist;
+      const ty    = Math.sin(angle) * dist;
+      const color = colors[i % colors.length];
+      const size  = 6 + Math.random() * 12;
+
+      const p = document.createElement('div');
+      p.style.cssText = `
+        position:fixed; border-radius:50%;
+        width:${size}px; height:${size}px;
+        background:${color}; box-shadow:0 0 6px ${color};
+        left:${cx}px; top:${cy}px;
+        transform:translate(-50%,-50%);
+        z-index:601; pointer-events:none; opacity:1;
+      `;
+      document.body.appendChild(p);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        p.style.transition = 'transform 0.75s ease-out, opacity 0.5s ease 0.25s';
+        p.style.transform  = `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px))`;
+        p.style.opacity    = '0';
+      }));
+      setTimeout(() => p.remove(), 1100);
+    }
+  }
+
+  function playAlbumCompleteAnimation() {
+    const grid  = document.getElementById('stickerGrid');
+    const slots = [...grid.querySelectorAll('.slot.filled')];
+    if (!slots.length) return;
+
+    // Save rects before any changes
+    const rects = slots.map(s => s.getBoundingClientRect());
+    const sz    = rects[0].width;
+
+    // Center of grid
+    const gridRect = grid.getBoundingClientRect();
+    const cx = gridRect.left + gridRect.width  / 2;
+    const cy = gridRect.top  + gridRect.height / 2;
+
+    // 1. Shake all filled slots
+    slots.forEach(s => s.classList.add('album-shake'));
+
+    setTimeout(() => {
+      slots.forEach(s => s.classList.remove('album-shake'));
+
+      // 2. Create flying clones, hide originals
+      const dots = rects.map(r => {
+        const d = document.createElement('div');
+        d.style.cssText = `
+          position:fixed; z-index:600; pointer-events:none;
+          width:${r.width}px; height:${r.height}px; border-radius:50%;
+          background:rgba(167,139,250,0.9); border:2px solid #a78bfa;
+          display:flex; align-items:center; justify-content:center;
+          font-size:${r.width * 0.45}px;
+          left:${r.left}px; top:${r.top}px;
+          transition:left 0.55s cubic-bezier(0.7,0,0.3,1),
+                     top  0.55s cubic-bezier(0.7,0,0.3,1),
+                     transform 0.55s cubic-bezier(0.7,0,0.3,1),
+                     opacity 0.55s;
+        `;
+        d.textContent = '🐱';
+        document.body.appendChild(d);
+        return d;
+      });
+      slots.forEach(s => { s.style.opacity = '0'; });
+
+      // Fly to center
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        dots.forEach(d => {
+          d.style.left    = (cx - sz / 2) + 'px';
+          d.style.top     = (cy - sz / 2) + 'px';
+          d.style.transform = 'scale(0.1)';
+          d.style.opacity = '0';
+        });
+      }));
+
+      setTimeout(() => {
+        dots.forEach(d => d.remove());
+
+        // 3. Merged big circle pops in
+        const mSz    = sz * 3.0;
+        const merged = document.createElement('div');
+        merged.style.cssText = `
+          position:fixed; z-index:600; pointer-events:none;
+          width:${mSz}px; height:${mSz}px; border-radius:50%;
+          background:radial-gradient(circle at 35% 35%, #c4b5fd, #7c3aed 70%);
+          border:3px solid #a78bfa;
+          box-shadow:0 0 60px rgba(167,139,250,0.9), 0 0 120px rgba(124,58,237,0.5);
+          display:flex; align-items:center; justify-content:center;
+          font-size:${mSz * 0.42}px;
+          left:${cx - mSz / 2}px; top:${cy - mSz / 2}px;
+          transform:scale(0);
+          transition:transform 0.45s cubic-bezier(0.34,1.56,0.64,1);
+        `;
+        merged.textContent = '🐱';
+        document.body.appendChild(merged);
+
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          merged.style.transform = 'scale(1)';
+        }));
+
+        setTimeout(() => {
+          // 4. Pop!
+          merged.style.transition = 'transform 0.22s ease-in, opacity 0.22s ease-in';
+          merged.style.transform  = 'scale(2.4)';
+          merged.style.opacity    = '0';
+          spawnBurstParticles(cx, cy);
+
+          setTimeout(() => {
+            merged.remove();
+            slots.forEach(s => { s.style.opacity = ''; });
+
+            // 5. cat_toy image appears
+            const toy = document.createElement('img');
+            toy.src = 'cat_toy.png';
+            toy.style.cssText = `
+              position:fixed; z-index:600; pointer-events:none;
+              width:220px; height:auto;
+              left:${cx}px; top:${cy}px;
+              transform:translate(-50%, -50%) scale(0) rotate(-12deg);
+              transition:transform 0.65s cubic-bezier(0.34,1.56,0.64,1);
+              filter:drop-shadow(0 10px 32px rgba(0,0,0,0.45));
+            `;
+            document.body.appendChild(toy);
+            requestAnimationFrame(() => requestAnimationFrame(() => {
+              toy.style.transform = 'translate(-50%, -50%) scale(1) rotate(0deg)';
+            }));
+
+            // 6. Congratulations popup
+            setTimeout(() => {
+              document.getElementById('albumCompletePopup').classList.add('show');
+              setTimeout(() => {
+                toy.style.transition = 'opacity 0.4s';
+                toy.style.opacity    = '0';
+                setTimeout(() => toy.remove(), 450);
+              }, 500);
+            }, 900);
+          }, 260);
+        }, 500);
+      }, 620);
+    }, 750);
   }
 
   /* ── SHOP ── */
@@ -1643,14 +1825,17 @@
     if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
   });
 
+  /* ── ALBUM NAVIGATION ── */
   document.getElementById('albumBtn').addEventListener('click', () => {
-    buildAlbum();
-    updateStickerUI();
     showScreen('albumScreen');
   });
 
-  document.getElementById('albumBackBtn').addEventListener('click', () => {
+  document.getElementById('getStickersBtn').addEventListener('click', () => {
     showScreen('startScreen');
+  });
+
+  document.getElementById('albumCompleteClose').addEventListener('click', () => {
+    document.getElementById('albumCompletePopup').classList.remove('show');
   });
 
   /* ── STICKER DRAG ── */
@@ -1675,15 +1860,9 @@
     state.stickerCount--;
     updateStickerUI();
     if (state.stickersFilled >= 35) {
-      setTimeout(() => {
-        document.getElementById('albumCompletePopup').classList.add('show');
-      }, 300);
+      setTimeout(() => playAlbumCompleteAnimation(), 400);
     }
   }
-
-  document.getElementById('albumCompleteClose').addEventListener('click', () => {
-    document.getElementById('albumCompletePopup').classList.remove('show');
-  });
 
   stickerSource.addEventListener('mousedown', e => {
     if (state.stickerCount === 0) return;
@@ -1722,6 +1901,10 @@
 
   document.addEventListener('mouseup',  onStickerDragEnd);
   document.addEventListener('touchend', onStickerDragEnd);
+
+  /* ── INIT ── */
+  buildAlbum();
+  updateStickerUI();
 </script>
 </body>
 </html>
