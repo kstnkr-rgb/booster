@@ -850,6 +850,90 @@
       gap: 16px;
       box-shadow: 0 4px 28px rgba(0,0,0,0.1);
     }
+
+    /* ── GAME & PRIZES SCREEN BACKGROUNDS ── */
+    #gameScreen {
+      background: url('background.png') center/cover no-repeat;
+    }
+    #gameScreen .hint        { color: #5b4080; }
+    #gameScreen .back-btn    { color: #5b4080; }
+    #gameScreen .game-counter { color: #374151; }
+    #gameScreen .game-counter span { color: #6d28d9; }
+
+    #prizesScreen {
+      background: url('background.png') center/cover no-repeat;
+      padding: 0;
+      justify-content: flex-start;
+    }
+    .prizes-top-bar {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 48px 16px 12px;
+    }
+    .prizes-content {
+      flex: 1;
+      width: 100%;
+      padding: 0 12px 24px;
+      overflow-y: auto;
+      display: flex;
+      justify-content: center;
+    }
+    .prizes-card {
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(12px);
+      border-radius: 24px;
+      padding: 20px 16px;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      box-shadow: 0 4px 28px rgba(0,0,0,0.1);
+    }
+
+    /* ── SLOT NUMBERS ── */
+    .slot:not(.filled) {
+      font-size: 0.65em;
+      font-weight: 700;
+    }
+    .slot.zone-silver:not(.filled) { color: rgba(180,180,200,0.7); }
+    .slot.zone-gold:not(.filled)   { color: rgba(200,160,40,0.8); }
+
+    /* ── BUY POPUP ── */
+    .buy-booster-img {
+      width: 80px;
+      height: auto;
+      display: block;
+      margin: 0 auto;
+      filter: drop-shadow(0 4px 10px rgba(0,0,0,0.3));
+    }
+    .buy-slider-wrap {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 4px 0;
+    }
+    .buy-slider-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.85rem;
+    }
+    .buy-slider-row .label { color: #9ca3af; }
+    .buy-slider-row .value { font-weight: 700; color: #fff; font-size: 1rem; }
+    .buy-total { font-weight: 700; color: #a78bfa; font-size: 1rem; }
+    input[type=range].buy-range {
+      width: 100%;
+      accent-color: #7c3aed;
+      cursor: pointer;
+    }
+    .buy-popup-btns {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
   </style>
 </head>
 <body>
@@ -987,25 +1071,57 @@
     <p class="popup-title">Магазин</p>
     <div class="shop-grid">
       <div class="shop-item">
-        <img src="booster_gold.png" class="shop-booster-img" alt="">
+        <div style="position:relative;width:100%;">
+          <button class="info-btn" data-type="gold" style="top:4px;right:4px;">i</button>
+          <img src="booster_gold.png" class="shop-booster-img" alt="">
+        </div>
         <p class="shop-name">Золотой</p>
-        <div class="shop-price"><img src="crystals.png" style="height:14px;width:auto"> 10</div>
+        <div class="shop-price">💎 10</div>
         <button class="shop-buy-btn" data-type="gold">Купить</button>
       </div>
       <div class="shop-item">
-        <img src="booster_foil.png" class="shop-booster-img" alt="">
+        <div style="position:relative;width:100%;">
+          <button class="info-btn" data-type="foil" style="top:4px;right:4px;">i</button>
+          <img src="booster_foil.png" class="shop-booster-img" alt="">
+        </div>
         <p class="shop-name">Фолиевый</p>
-        <div class="shop-price"><img src="crystals.png" style="height:14px;width:auto"> 10</div>
+        <div class="shop-price">💎 10</div>
         <button class="shop-buy-btn" data-type="foil">Купить</button>
       </div>
       <div class="shop-item">
-        <img src="booster_cat.png" class="shop-booster-img" alt="">
+        <div style="position:relative;width:100%;">
+          <button class="info-btn" data-type="kitty" style="top:4px;right:4px;">i</button>
+          <img src="booster_cat.png" class="shop-booster-img" alt="">
+        </div>
         <p class="shop-name">Котиковый</p>
-        <div class="shop-price"><img src="crystals.png" style="height:14px;width:auto"> 10</div>
+        <div class="shop-price">💎 10</div>
         <button class="shop-buy-btn" data-type="kitty">Купить</button>
       </div>
     </div>
     <button class="popup-close" id="shopClose">Закрыть</button>
+  </div>
+</div>
+
+<!-- ══════════════ BUY POPUP ══════════════ -->
+<div class="popup-overlay" id="buyPopup">
+  <div class="popup-box" style="max-width:300px;gap:16px;text-align:center;">
+    <p class="popup-title" id="buyTitle">Золотой</p>
+    <img id="buyImg" src="" class="buy-booster-img" alt="">
+    <div class="buy-slider-wrap">
+      <div class="buy-slider-row">
+        <span class="label">Количество</span>
+        <span class="value" id="buyQty">1</span>
+      </div>
+      <input type="range" class="buy-range" id="buySlider" min="1" max="10" value="1">
+      <div class="buy-slider-row">
+        <span class="label">Итого</span>
+        <span class="buy-total" id="buyTotal">💎 10</span>
+      </div>
+    </div>
+    <div class="buy-popup-btns">
+      <button class="shop-buy-btn" id="buyConfirm">Подтвердить</button>
+      <button class="popup-close" id="buyCancel">Отмена</button>
+    </div>
   </div>
 </div>
 
@@ -1033,9 +1149,16 @@
 
 <!-- ══════════════ PRIZES SCREEN ══════════════ -->
 <div class="screen" id="prizesScreen">
-  <button class="back-btn" id="prizesBackBtn">← Назад</button>
-  <p class="start-title">Мои призы</p>
-  <div class="prizes-list" id="prizesList" style="width:100%;max-width:360px;"></div>
+  <div class="prizes-top-bar">
+    <button class="album-back-btn" id="prizesBackBtn">← Назад</button>
+    <p class="album-screen-title">Мои призы</p>
+    <div style="width:80px"></div>
+  </div>
+  <div class="prizes-content">
+    <div class="prizes-card">
+      <div class="prizes-list" id="prizesList"></div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -1172,19 +1295,26 @@
   }
 
   /* ── COUNT DISPLAY ── */
+  const OPEN_BTN_IDS = { gold: 'openGold', foil: 'openFoil', kitty: 'openKitty' };
   function updateCounts() {
-    document.getElementById('goldCount').textContent  = state.counts.gold;
-    document.getElementById('foilCount').textContent  = state.counts.foil;
-    document.getElementById('kittyCount').textContent = state.counts.kitty;
-    document.getElementById('openGold').disabled  = state.counts.gold  <= 0;
-    document.getElementById('openFoil').disabled  = state.counts.foil  <= 0;
-    document.getElementById('openKitty').disabled = state.counts.kitty <= 0;
+    ['gold','foil','kitty'].forEach(type => {
+      const cnt = state.counts[type];
+      document.getElementById(type + 'Count').textContent = cnt;
+      const btn = document.getElementById(OPEN_BTN_IDS[type]);
+      btn.textContent = cnt > 0 ? 'Открыть' : 'Купить';
+      btn.disabled = false;
+    });
   }
 
   /* ── START SCREEN ACTIONS ── */
-  document.getElementById('openGold').addEventListener('click',  () => startPack('gold'));
-  document.getElementById('openFoil').addEventListener('click',  () => startPack('foil'));
-  document.getElementById('openKitty').addEventListener('click', () => startPack('kitty'));
+  function openShop() { document.getElementById('shopPopup').classList.add('show'); }
+
+  document.getElementById('openGold').addEventListener('click',  () =>
+    state.counts.gold  > 0 ? startPack('gold')  : openShop());
+  document.getElementById('openFoil').addEventListener('click',  () =>
+    state.counts.foil  > 0 ? startPack('foil')  : openShop());
+  document.getElementById('openKitty').addEventListener('click', () =>
+    state.counts.kitty > 0 ? startPack('kitty') : openShop());
 
   function startPack(type) {
     if (state.counts[type] <= 0) return;
@@ -1463,29 +1593,50 @@
       const isNext = i === state.stickersFilled && state.stickerCount > 0 && state.stickersFilled < 35;
       s.classList.toggle('filled',      filled);
       s.classList.toggle('next-target', isNext);
-      s.textContent = filled ? '🐱' : '';
+      s.textContent = filled ? '🐱' : String(i + 1);
     });
   }
 
   /* ── SHOP ── */
-  document.getElementById('shopBtn').addEventListener('click', () => {
-    document.getElementById('shopPopup').classList.add('show');
-  });
-  document.getElementById('shopClose').addEventListener('click', () => {
-    document.getElementById('shopPopup').classList.remove('show');
-  });
+  const PACK_PREVIEW = { gold: 'booster_gold.png', foil: 'booster_foil.png', kitty: 'booster_cat.png' };
+  let buyType = null;
+
+  document.getElementById('shopBtn').addEventListener('click', openShop);
+  document.getElementById('shopClose').addEventListener('click', () =>
+    document.getElementById('shopPopup').classList.remove('show'));
   document.getElementById('shopPopup').addEventListener('click', e => {
     if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
   });
+
   document.querySelectorAll('.shop-buy-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const type = btn.dataset.type;
-      state.counts[type]++;
-      updateCounts();
-      const orig = btn.textContent;
-      btn.textContent = '✓';
-      setTimeout(() => btn.textContent = orig, 700);
+      buyType = btn.dataset.type;
+      document.getElementById('buyTitle').textContent = PACKS[buyType].label;
+      document.getElementById('buyImg').src = PACK_PREVIEW[buyType];
+      document.getElementById('buySlider').value = 1;
+      updateBuyUI();
+      document.getElementById('buyPopup').classList.add('show');
     });
+  });
+
+  function updateBuyUI() {
+    const qty = parseInt(document.getElementById('buySlider').value);
+    document.getElementById('buyQty').textContent   = qty;
+    document.getElementById('buyTotal').textContent = '💎 ' + (qty * 10);
+  }
+  document.getElementById('buySlider').addEventListener('input', updateBuyUI);
+
+  document.getElementById('buyConfirm').addEventListener('click', () => {
+    const qty = parseInt(document.getElementById('buySlider').value);
+    state.counts[buyType] += qty;
+    updateCounts();
+    document.getElementById('buyPopup').classList.remove('show');
+    document.getElementById('shopPopup').classList.remove('show');
+  });
+  document.getElementById('buyCancel').addEventListener('click', () =>
+    document.getElementById('buyPopup').classList.remove('show'));
+  document.getElementById('buyPopup').addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
   });
 
   document.getElementById('albumBtn').addEventListener('click', () => {
