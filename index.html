@@ -717,7 +717,60 @@
       width: 100%;
       display: flex;
       justify-content: center;
+      gap: 12px;
     }
+
+    .shop-grid {
+      display: flex;
+      gap: 10px;
+    }
+    .shop-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 6px;
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+    }
+    .shop-booster-img {
+      width: 100%;
+      height: auto;
+      display: block;
+      filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+    }
+    .shop-name {
+      font-size: 0.62rem;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #9ca3af;
+      text-align: center;
+    }
+    .shop-price {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: #a78bfa;
+    }
+    .shop-buy-btn {
+      width: 100%;
+      padding: 7px 4px;
+      background: linear-gradient(145deg, #7c3aed, #6d28d9);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .shop-buy-btn:hover { box-shadow: 0 3px 12px rgba(124,58,237,0.5); }
 
     .album-start-btn {
       padding: 10px 36px;
@@ -857,6 +910,7 @@
 
   <!-- Bottom -->
   <div class="start-bottom">
+    <button class="album-start-btn" id="shopBtn">Магазин</button>
     <button class="album-start-btn" id="albumBtn">Альбом</button>
   </div>
 
@@ -927,6 +981,34 @@
 <button class="home-btn" id="homeBtn">На главную</button>
 <button class="next-booster-btn" id="nextBoosterBtn">Открыть следующий</button>
 
+<!-- ══════════════ SHOP POPUP ══════════════ -->
+<div class="popup-overlay" id="shopPopup">
+  <div class="popup-box" style="max-width:380px;">
+    <p class="popup-title">Магазин</p>
+    <div class="shop-grid">
+      <div class="shop-item">
+        <img src="booster_gold.png" class="shop-booster-img" alt="">
+        <p class="shop-name">Золотой</p>
+        <div class="shop-price"><img src="crystals.png" style="height:14px;width:auto"> 10</div>
+        <button class="shop-buy-btn" data-type="gold">Купить</button>
+      </div>
+      <div class="shop-item">
+        <img src="booster_foil.png" class="shop-booster-img" alt="">
+        <p class="shop-name">Фолиевый</p>
+        <div class="shop-price"><img src="crystals.png" style="height:14px;width:auto"> 10</div>
+        <button class="shop-buy-btn" data-type="foil">Купить</button>
+      </div>
+      <div class="shop-item">
+        <img src="booster_cat.png" class="shop-booster-img" alt="">
+        <p class="shop-name">Котиковый</p>
+        <div class="shop-price"><img src="crystals.png" style="height:14px;width:auto"> 10</div>
+        <button class="shop-buy-btn" data-type="kitty">Купить</button>
+      </div>
+    </div>
+    <button class="popup-close" id="shopClose">Закрыть</button>
+  </div>
+</div>
+
 <!-- ══════════════ ALBUM COMPLETE POPUP ══════════════ -->
 <div class="popup-overlay" id="albumCompletePopup">
   <div class="popup-box" style="text-align:center;gap:20px;">
@@ -989,6 +1071,12 @@
     'Дорогой':  ['#fbbf24','#f59e0b','#e879f9','#a78bfa','#ffffff'],
   };
 
+  const CAT_BACK = {
+    'Дешёвый': 'Back_green.png',
+    'Средний':  'Back_blue.png',
+    'Дорогой':  'Back_foil.png',
+  };
+
   const CAT_LABEL = {
     'Дешёвый': 'Обычный приз',
     'Средний':  'Редкий приз',
@@ -1003,7 +1091,7 @@
 
   /* ── STATE ── */
   const state = {
-    counts:        { gold: 99, foil: 99, kitty: 99 },
+    counts:        { gold: 2, foil: 2, kitty: 2 },
     myPrizes:      [],
     activeType:    'gold',
     stickerCount:  100,
@@ -1240,6 +1328,7 @@
     packTopWrap.style.transform = '';
 
     const prize = pickPrize(state.activeType);
+    document.querySelector('.card-back img').src = CAT_BACK[prize.cat] || 'card_back.png';
     prizeValue.textContent = prize.name;
     document.querySelector('.prize-label-txt').textContent = CAT_LABEL[prize.cat] || 'Ваш приз';
     state.myPrizes.unshift({ name: prize.name, cat: prize.cat, packLabel: PACKS[state.activeType].label });
@@ -1316,6 +1405,7 @@
     cutProgress = 0;
 
     document.getElementById('cardInner').classList.remove('flipped');
+    document.querySelector('.card-back img').src = 'card_back.png';
 
     packTopWrap.style.animation = 'none';
     packTopWrap.style.transform = '';
@@ -1376,6 +1466,27 @@
       s.textContent = filled ? '🐱' : '';
     });
   }
+
+  /* ── SHOP ── */
+  document.getElementById('shopBtn').addEventListener('click', () => {
+    document.getElementById('shopPopup').classList.add('show');
+  });
+  document.getElementById('shopClose').addEventListener('click', () => {
+    document.getElementById('shopPopup').classList.remove('show');
+  });
+  document.getElementById('shopPopup').addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('show');
+  });
+  document.querySelectorAll('.shop-buy-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const type = btn.dataset.type;
+      state.counts[type]++;
+      updateCounts();
+      const orig = btn.textContent;
+      btn.textContent = '✓';
+      setTimeout(() => btn.textContent = orig, 700);
+    });
+  });
 
   document.getElementById('albumBtn').addEventListener('click', () => {
     buildAlbum();
